@@ -4,10 +4,13 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "../contexts/LanguageContext";
+import LanguageToggle from "./LanguageToggle";
 
 const API_BASE_URI = import.meta.env.VITE_API_BASE_URL;
 
 const Login = () => {
+  const { t } = useLanguage();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -17,11 +20,11 @@ const Login = () => {
     e.preventDefault();
 
     if (!identifier.trim()) {
-      toast.error("Please enter username or mobile number");
+      toast.error(t('auth.enterUsername'));
       return;
     }
     if (!password.trim()) {
-      toast.error("Please enter password");
+      toast.error(t('auth.enterPassword'));
       return;
     }
 
@@ -40,7 +43,7 @@ const Login = () => {
 
       // Route based on user role
       if (data.user.role === "admin") {
-        toast.success("Login successful!");
+        toast.success(t('auth.loginSuccess'));
         navigate("/admin", { replace: true });
       } else if (data.user.role === "vendor") {
         // For vendors, fetch full profile
@@ -55,12 +58,12 @@ const Login = () => {
             JSON.stringify(profileRes.data.vendor)
           );
 
-          toast.success("Login successful!");
+          toast.success(t('auth.loginSuccess'));
           navigate("/vendor", { replace: true });
         } catch (err) {
           console.error("Failed to fetch vendor profile:", err.response?.data || err.message);
           localStorage.clear();
-          toast.error("Could not fetch vendor profile. Please try again.");
+          toast.error(t('auth.loginError'));
         }
       }
     } catch (err) {
@@ -77,8 +80,13 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 px-4 py-8">
+      {/* Language Toggle - Top Right */}
+      <div className="absolute top-4 right-4 z-10">
+        <LanguageToggle variant="compact" />
+      </div>
+
       <div className="w-full max-w-6xl flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
-        
+
         {/* Left side - Branding */}
         <div className="flex-1 w-full lg:w-auto text-center lg:text-left">
           <div className="space-y-6">
@@ -90,14 +98,14 @@ const Login = () => {
                 </svg>
               </div>
             </div>
-            
+
             {/* Title */}
             <div>
               <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold text-slate-800 mb-4">
-                Game Book
+                {t('app.name')}
               </h1>
               <p className="text-lg lg:text-xl text-slate-600 max-w-md mx-auto lg:mx-0">
-                Smart business management at your fingertips. Track receipts, manage customers, and grow your business.
+                {t('app.tagline')}
               </p>
             </div>
 
@@ -109,7 +117,7 @@ const Login = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <span className="text-slate-700 font-medium">Easy receipt management</span>
+                <span className="text-slate-700 font-medium">{t('auth.features.receiptManagement')}</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-slate-100 border border-slate-200 rounded-xl flex items-center justify-center shadow-sm">
@@ -117,7 +125,7 @@ const Login = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <span className="text-slate-700 font-medium">Real-time analytics</span>
+                <span className="text-slate-700 font-medium">{t('auth.features.analytics')}</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-slate-100 border border-slate-200 rounded-xl flex items-center justify-center shadow-sm">
@@ -125,7 +133,7 @@ const Login = () => {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                 </div>
-                <span className="text-slate-700 font-medium">Secure and reliable</span>
+                <span className="text-slate-700 font-medium">{t('auth.features.secure')}</span>
               </div>
             </div>
           </div>
@@ -137,10 +145,10 @@ const Login = () => {
             {/* Form Header */}
             <div className="mb-8">
               <h2 className="text-3xl font-bold text-slate-800 mb-2">
-                Welcome Back
+                {t('auth.welcomeBack')}
               </h2>
               <p className="text-slate-500">
-                Sign in to access your dashboard
+                {t('auth.signInMessage')}
               </p>
             </div>
 
@@ -149,7 +157,7 @@ const Login = () => {
               {/* Username/Mobile Input */}
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-700 block">
-                  Username or Mobile Number
+                  {t('auth.usernameOrMobile')}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -159,7 +167,7 @@ const Login = () => {
                   </div>
                   <input
                     type="text"
-                    placeholder="Enter your username or mobile"
+                    placeholder={t('auth.usernamePlaceholder')}
                     value={identifier}
                     onChange={(e) => setIdentifier(e.target.value)}
                     className="w-full pl-12 pr-4 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition duration-200"
@@ -170,7 +178,7 @@ const Login = () => {
               {/* Password Input */}
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-slate-700 block">
-                  Password
+                  {t('auth.password')}
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -180,7 +188,7 @@ const Login = () => {
                   </div>
                   <input
                     type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
+                    placeholder={t('auth.passwordPlaceholder')}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full pl-12 pr-12 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-transparent transition duration-200"
@@ -204,7 +212,7 @@ const Login = () => {
                 type="submit"
                 className="w-full py-4 bg-gradient-to-br from-slate-700 to-slate-800 hover:from-slate-800 hover:to-slate-900 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 mt-6"
               >
-                Sign In
+                {t('auth.signIn')}
               </button>
             </form>
 
@@ -214,7 +222,7 @@ const Login = () => {
                 <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
-                Protected by end-to-end encryption
+                {t('auth.securityMessage')}
               </p>
             </div>
           </div>

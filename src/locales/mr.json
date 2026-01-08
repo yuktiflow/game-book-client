@@ -1,0 +1,262 @@
+{
+    "app": {
+        "name": "गेम बुक",
+        "tagline": "तुमच्या हातात स्मार्ट व्यवसाय व्यवस्थापन"
+    },
+    "auth": {
+        "welcomeBack": "पुन्हा स्वागत आहे",
+        "signInMessage": "तुमच्या डॅशबोर्डवर प्रवेश करण्यासाठी साइन इन करा",
+        "usernameOrMobile": "वापरकर्तानाव किंवा मोबाइल नंबर",
+        "usernamePlaceholder": "तुमचे वापरकर्तानाव किंवा मोबाइल प्रविष्ट करा",
+        "password": "पासवर्ड",
+        "passwordPlaceholder": "तुमचा पासवर्ड प्रविष्ट करा",
+        "signIn": "साइन इन करा",
+        "loginSuccess": "लॉगिन यशस्वी!",
+        "loginError": "लॉगिन अयशस्वी. कृपया तुमची माहिती तपासा.",
+        "enterUsername": "कृपया वापरकर्तानाव किंवा मोबाइल नंबर प्रविष्ट करा",
+        "enterPassword": "कृपया पासवर्ड प्रविष्ट करा",
+        "securityMessage": "एंड-टू-एंड एन्क्रिप्शनद्वारे संरक्षित",
+        "features": {
+            "receiptManagement": "सोपे पावती व्यवस्थापन",
+            "analytics": "रिअल-टाइम विश्लेषण",
+            "secure": "सुरक्षित आणि विश्वसनीय"
+        }
+    },
+    "navigation": {
+        "dashboard": "डॅशबोर्ड",
+        "receipts": "पावत्या",
+        "createReceipt": "पावती तयार करा",
+        "viewReceipts": "पावत्या पहा",
+        "customers": "ग्राहक",
+        "shortcuts": "शॉर्टकट",
+        "reports": "अहवाल",
+        "profile": "प्रोफाइल",
+        "logout": "लॉगआउट"
+    },
+    "dashboard": {
+        "title": "डॅशबोर्ड",
+        "overview": "विहंगावलोकन",
+        "welcome": "स्वागत आहे",
+        "todaySummary": "आजचा सारांश",
+        "dailySummary": "दैनिक सारांश",
+        "loadingSummary": "सारांश लोड करत आहे...",
+        "combinedTotal": "एकत्रित एकूण (उत्पन्न + पेमेंट)",
+        "noRecords": "या तारखेसाठी कोणतेही रेकॉर्ड आढळले नाहीत.",
+        "selectDate": "सारांश पाहण्यासाठी तारीख निवडा",
+        "totalReceipts": "एकूण पावत्या",
+        "totalCustomers": "एकूण ग्राहक",
+        "totalIncome": "एकूण उत्पन्न",
+        "totalPayment": "एकूण पेमेंट",
+        "totalDue": "एकूण देय",
+        "recentActivity": "अलीकडील क्रियाकलाप",
+        "quickActions": {
+            "title": "Quick receipt",
+            "createReceiptDesc": "Quick receipt entry",
+            "viewReceiptsDesc": "सर्व पावत्या पहा",
+            "customersDesc": "ग्राहक व्यवस्थापित करा",
+            "reportsDesc": "विश्लेषण पहा",
+            "profileDesc": "माहिती अपडेट करा"
+        },
+        "viewAll": "सर्व पहा",
+        "noData": "डेटा उपलब्ध नाही"
+    },
+    "receipts": {
+        "title": "पावत्या पहा",
+        "description": "तुमच्या सर्व पावत्या व्यवस्थापित करा आणि पहा",
+        "createNew": "नवीन पावती तयार करा",
+        "searchPlaceholder": "नाव, व्यवसाय किंवा अ.क्र. द्वारे शोधा...",
+        "filters": {
+            "allTime": "सर्व काळ",
+            "today": "आज",
+            "last7Days": "गेले ७ दिवस",
+            "thisMonth": "हा महिना"
+        },
+        "viewMode": {
+            "list": "यादी",
+            "grid": "ग्रिड"
+        },
+        "table": {
+            "srNo": "अ.क्र.",
+            "customerName": "ग्राहकाचे नाव",
+            "date": "तारीख",
+            "day": "वार",
+            "payment": "पेमेंट",
+            "finalTotal": "अंतिम एकूण",
+            "actions": "क्रिया",
+            "businessName": "व्यवसायाचे नाव",
+            "companyName": "कंपनीचे नाव"
+        },
+        "actions": {
+            "edit": "संपादित करा",
+            "delete": "हटवा",
+            "print": "प्रिंट करा",
+            "view": "पहा",
+            "export": "निर्यात करा"
+        },
+        "messages": {
+            "deleteConfirm": "तुम्हाला खात्री आहे की तुम्ही ही पावती हटवू इच्छिता",
+            "deleteSuccess": "पावती यशस्वीरित्या हटवली!",
+            "deleteFailed": "पावती हटवणे अयशस्वी.",
+            "exportSuccess": "पावत्या यशस्वीरित्या निर्यात केल्या!",
+            "noReceipts": "पावत्या आढळल्या नाहीत",
+            "loading": "पावत्या लोड होत आहेत..."
+        },
+        "form": {
+            "title": "पावती फॉर्म",
+            "editTitle": "पावती संपादित करा",
+            "createTitle": "नवीन पावती तयार करा",
+            "selectCustomer": "ग्राहक निवडा",
+            "selectCompany": "कंपनी निवडा",
+            "selectDate": "तारीख निवडा",
+            "selectDay": "वार निवडा",
+            "save": "जतन करा",
+            "cancel": "रद्द करा",
+            "saveAndPrint": "जतन करा आणि प्रिंट करा",
+            "validation": {
+                "selectCustomer": "कृपया ग्राहक निवडा",
+                "selectCompany": "कृपया कंपनी निवडा",
+                "selectDate": "कृपया तारीख निवडा"
+            },
+            "success": "पावती यशस्वीरित्या जतन केली!",
+            "error": "पावती जतन करणे अयशस्वी"
+        },
+        "receipt": {
+            "open": "ओपन",
+            "close": "को.",
+            "jod": "जोड",
+            "pan": "पान",
+            "gun": "गुण",
+            "jackpot": "जॅकपॉट",
+            "berij": "बेरीज",
+            "frak": "फरक",
+            "amount": "रक्कम",
+            "total": "टो.",
+            "deduction": "क.",
+            "payment": "पें.",
+            "pending": "मा.",
+            "jama": "जमा",
+            "chuk": "चूक",
+            "finalTotal": "अंतिम टोटल",
+            "advance": "आड",
+            "cutting": "कटिंग",
+            "receivable": "येणे",
+            "payable": "देणे",
+            "var": "वार",
+            "date": "दि"
+        }
+    },
+    "customers": {
+        "title": "ग्राहक",
+        "description": "तुमचा ग्राहक डेटाबेस व्यवस्थापित करा",
+        "addCustomer": "ग्राहक जोडा",
+        "searchPlaceholder": "नाव, मोबाइल किंवा अ.क्र. द्वारे शोधा...",
+        "table": {
+            "srNo": "अ.क्र.",
+            "name": "नाव",
+            "mobile": "मोबाइल",
+            "address": "पत्ता",
+            "actions": "क्रिया"
+        },
+        "form": {
+            "title": "ग्राहक तपशील",
+            "name": "ग्राहकाचे नाव",
+            "namePlaceholder": "ग्राहकाचे नाव प्रविष्ट करा",
+            "mobile": "मोबाइल नंबर",
+            "mobilePlaceholder": "मोबाइल नंबर प्रविष्ट करा",
+            "address": "पत्ता",
+            "addressPlaceholder": "पत्ता प्रविष्ट करा",
+            "save": "जतन करा",
+            "cancel": "रद्द करा"
+        },
+        "messages": {
+            "deleteConfirm": "तुम्हाला खात्री आहे की तुम्ही हा ग्राहक हटवू इच्छिता?",
+            "deleteSuccess": "ग्राहक यशस्वीरित्या हटवला!",
+            "deleteFailed": "ग्राहक हटवणे अयशस्वी.",
+            "saveSuccess": "ग्राहक यशस्वीरित्या जतन केला!",
+            "saveFailed": "ग्राहक जतन करणे अयशस्वी.",
+            "noCustomers": "ग्राहक आढळले नाहीत",
+            "loading": "ग्राहक लोड होत आहेत..."
+        }
+    },
+    "shortcuts": {
+        "title": "शॉर्टकट",
+        "description": "द्रुत पावती प्रविष्टी",
+        "selectCompany": "कंपनी निवडा",
+        "save": "जतन करा",
+        "success": "शॉर्टकट यशस्वीरित्या जतन केले!",
+        "error": "शॉर्टकट जतन करणे अयशस्वी"
+    },
+    "reports": {
+        "title": "अहवाल",
+        "description": "व्यवसाय विश्लेषण आणि अहवाल पहा",
+        "dateRange": "तारीख श्रेणी",
+        "from": "पासून",
+        "to": "पर्यंत",
+        "generate": "अहवाल तयार करा",
+        "export": "निर्यात करा",
+        "charts": {
+            "income": "उत्पन्न ट्रेंड",
+            "payment": "पेमेंट ट्रेंड",
+            "customers": "ग्राहक क्रियाकलाप"
+        },
+        "messages": {
+            "loading": "अहवाल लोड होत आहेत...",
+            "noData": "निवडलेल्या कालावधीसाठी डेटा उपलब्ध नाही",
+            "exportSuccess": "अहवाल यशस्वीरित्या निर्यात केला!"
+        }
+    },
+    "profile": {
+        "title": "प्रोफाइल",
+        "description": "तुमची खाते सेटिंग्ज व्यवस्थापित करा",
+        "businessName": "व्यवसायाचे नाव",
+        "username": "वापरकर्तानाव",
+        "mobile": "मोबाइल नंबर",
+        "email": "ईमेल",
+        "save": "बदल जतन करा",
+        "cancel": "रद्द करा",
+        "messages": {
+            "updateSuccess": "प्रोफाइल यशस्वीरित्या अपडेट केले!",
+            "updateFailed": "प्रोफाइल अपडेट करणे अयशस्वी.",
+            "loading": "प्रोफाइल लोड होत आहे..."
+        }
+    },
+    "common": {
+        "loading": "लोड होत आहे...",
+        "save": "जतन करा",
+        "cancel": "रद्द करा",
+        "edit": "संपादित करा",
+        "delete": "हटवा",
+        "view": "पहा",
+        "search": "शोधा",
+        "filter": "फिल्टर",
+        "export": "निर्यात करा",
+        "print": "प्रिंट करा",
+        "close": "बंद करा",
+        "confirm": "पुष्टी करा",
+        "yes": "होय",
+        "no": "नाही",
+        "ok": "ठीक आहे",
+        "error": "त्रुटी",
+        "success": "यशस्वी",
+        "warning": "चेतावणी",
+        "info": "माहिती",
+        "noResults": "परिणाम आढळले नाहीत",
+        "selectOption": "पर्याय निवडा",
+        "required": "हे फील्ड आवश्यक आहे"
+    },
+    "language": {
+        "english": "English",
+        "marathi": "मराठी",
+        "selectLanguage": "भाषा निवडा",
+        "changeLanguage": "भाषा बदला"
+    },
+    "days": {
+        "monday": "सोमवार",
+        "tuesday": "मंगळवार",
+        "wednesday": "बुधवार",
+        "thursday": "गुरुवार",
+        "friday": "शुक्रवार",
+        "saturday": "शनिवार",
+        "sunday": "रविवार"
+    }
+}

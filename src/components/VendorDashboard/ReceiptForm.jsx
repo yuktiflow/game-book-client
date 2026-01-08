@@ -818,102 +818,9 @@ const ReceiptForm = ({ businessName = "Bappa Gaming" }) => {
     }
   };
 
-  // --- UPDATED: handleEdit now sanitizes pan.type and sets globalSpecialType ---
+  // --- UPDATED: Navigate to edit route ---
   const handleEdit = (id) => {
-    isEditingRef.current = true;
-    const receipt = receipts.find((r) => r._id === id);
-    if (!receipt) {
-      toast.error("Could not find receipt to edit.");
-      return;
-    }
-    const customer = customerList.find((c) => c._id === receipt.customerId);
-
-    setSerialNumberInput(customer ? customer.srNo.toString() : "");
-    setCustomerSearch("");
-    setIsCustomerDropdownOpen(false);
-
-    // --- UPDATED: Sanitization logic for game rows
-    const sanitizedGameRows = (receipt.gameRows || getInitialGameRows()).map(
-      (row) => {
-        // --- Pan sanitization (simplified)
-        const panData = row.pan;
-        let newPan = { val1: "", val2: "", type: "sp" }; // MODIFIED
-        if (typeof panData === "object" && panData !== null) {
-          newPan.val1 = panData.val1 || "";
-          newPan.val2 = panData.val2 || "";
-          newPan.type = panData.type || "sp"; // MODIFIED: Ensure type exists
-        } else if (typeof panData === "string") {
-          newPan.val1 = panData; // Handle very old format
-        }
-
-        // --- NEW: Sanitize 'special' field
-        let newSpecial = { type: "jackpot", val1: "", val2: "" };
-        if (row.special) {
-          newSpecial = row.special;
-        } else if (row.jackpot) {
-          // Map old data
-          newSpecial = {
-            type: "jackpot",
-            val1: row.jackpot.val1 || "",
-            val2: row.jackpot.val2 || "",
-          };
-        } else if (row.berij) {
-          // Map old data
-          newSpecial = {
-            type: "berij",
-            val1: row.berij.val1 || "",
-            val2: row.berij.val2 || "",
-          };
-        } else if (row.frak) {
-          // Map old data
-          newSpecial = {
-            type: "frak",
-            val1: row.frak.val1 || "",
-            val2: row.frak.val2 || "",
-          };
-        }
-
-        return {
-          ...row,
-          pan: newPan, // Use sanitized pan
-          gun: typeof row.gun === "object" ? row.gun : { val1: "", val2: "" },
-          special: newSpecial, // Use sanitized special field
-          // Remove old fields if they exist
-          jackpot: undefined,
-          berij: undefined,
-          frak: undefined,
-        };
-      }
-    );
-
-    const englishDay = dayjs(receipt.date).format("dddd");
-
-    // --- NEW: Set the global special type based on loaded data
-    setGlobalSpecialType(sanitizedGameRows[0]?.special?.type || "jackpot");
-
-    setFormData({
-      _id: receipt._id,
-      businessName: receipt.businessName || "Bappa Gaming",
-      customerId: receipt.customerId,
-      customerName: customer?.name || receipt.customerName,
-      customerCompany: receipt.customerCompany || "",
-      day: getMarathiDay(englishDay),
-      date: dayjs(receipt.date).format("DD-MM-YYYY"),
-      actualDate: new Date(receipt.date), // Store actual date object
-      payment: receipt.payment || "",
-      pendingAmount: receipt.pendingAmount?.toString() || "",
-      advanceAmount: receipt.advanceAmount?.toString() || "",
-      cuttingAmount: receipt.cuttingAmount?.toString() || "",
-      jama: receipt.jama?.toString() || "",
-      chuk: receipt.chuk?.toString() || "",
-      isChukEnabled: !!receipt.isChukEnabled,
-      chukPercentage: receipt.chukPercentage?.toString() || "10", // ADDED
-      deductionRate: receipt.deductionRate?.toString() || "10",
-    });
-
-    setGameRows(sanitizedGameRows);
-
-    formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    navigate(`/vendor/editReceipt/${id}`);
   };
 
   const handleDelete = async (id) => {
@@ -2130,7 +2037,7 @@ const ReceiptForm = ({ businessName = "Bappa Gaming" }) => {
             onClick={() => handleSave(true)}
             className="px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 bg-green-500 text-white rounded-full shadow-lg hover:bg-green-600 transition-colors text-sm sm:text-base md:text-lg font-medium"
           >
-            Save
+            {formData._id ? 'Update Receipt' : 'Save'}
           </button>
           <button
             onClick={handlePrint}

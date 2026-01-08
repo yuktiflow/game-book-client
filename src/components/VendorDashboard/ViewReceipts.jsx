@@ -23,6 +23,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 dayjs.extend(customParseFormat);
 dayjs.locale("mr"); // Set locale to Marathi
@@ -379,6 +380,7 @@ const PrintableReceipt = React.forwardRef(({ receiptData }, ref) => {
 // --- END: New PrintableReceipt component ---
 
 const ViewReceipts = () => {
+  const { t } = useLanguage();
   const [receipts, setReceipts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -400,7 +402,7 @@ const ViewReceipts = () => {
 
   const fetchReceipts = useCallback(async () => {
     if (!token) {
-      toast.error("Authentication error. Please log in again.");
+      toast.error(t('auth.loginError'));
       return;
     }
     try {
@@ -412,8 +414,7 @@ const ViewReceipts = () => {
       );
       setReceipts(sortedReceipts);
     } catch (err) {
-      console.error("Error fetching receipts:", err);
-      toast.error(err.response?.data?.message || "Failed to fetch receipts.");
+      toast.error(err.response?.data?.message || t('receipts.messages.deleteFailed'));
     }
   }, [token]);
 
@@ -440,15 +441,15 @@ const ViewReceipts = () => {
   }, [token]);
 
   useEffect(() => {
-    setLoading(true); 
+    setLoading(true);
     Promise.all([fetchReceipts(), fetchCustomers()])
-      .finally(() => setLoading(false)); 
+      .finally(() => setLoading(false));
   }, [fetchReceipts, fetchCustomers]);
 
   const handleDelete = async (receiptToDelete) => {
     if (
       window.confirm(
-        `Are you sure you want to delete the receipt for ${receiptToDelete.customerName}?`
+        `${t('receipts.messages.deleteConfirm')} ${receiptToDelete.customerName}?`
       )
     ) {
       try {
@@ -456,10 +457,10 @@ const ViewReceipts = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setReceipts((prev) => prev.filter((r) => r._id !== receiptToDelete._id));
-        toast.success("Receipt deleted successfully!");
+        toast.success(t('receipts.messages.deleteSuccess'));
       } catch (err) {
         console.error("Error deleting receipt:", err);
-        toast.error(err.response?.data?.message || "Failed to delete receipt.");
+        toast.error(err.response?.data?.message || t('receipts.messages.deleteFailed'));
       }
     }
   };
@@ -468,7 +469,7 @@ const ViewReceipts = () => {
   // Its job is to navigate to the form with the receipt's ID.
   // The ReceiptForm.jsx component is responsible for fetching the data using this ID.
   const handleEdit = (receiptId) => {
-    navigate(`/vendor/createReceipt/${receiptId}`);
+    navigate(`/vendor/editReceipt/${receiptId}`);
   };
 
   const handlePrint = (receipt) => {
@@ -499,30 +500,33 @@ const ViewReceipts = () => {
       }
     });
 
-    return receipts.map((receipt) => ({
+    const enriched = receipts.map((receipt) => ({
       ...receipt,
       customerSrNo: customerSrNoMap.get(receipt.customerId) || 'N/A',
       isLatest: latestReceiptMap.get(receipt.customerId)?._id === receipt._id
     }));
+
+    return enriched;
   }, [receipts, customerSrNoMap]);
+
 
   // Filter receipts
   const filteredReceipts = enrichedReceipts.filter((receipt) => {
     const searchTerm = search.toLowerCase();
     let matchesSearch = true;
-    
+
     if (searchTerm) {
       const nameMatch = (receipt.customerName || "").toLowerCase().includes(searchTerm);
       const srNoMatch = receipt.customerSrNo.toString() === searchTerm;
       const businessMatch = (receipt.businessName || "").toLowerCase().includes(searchTerm);
       matchesSearch = nameMatch || srNoMatch || businessMatch;
     }
-    
+
     // Date filter
     let matchesDate = true;
     const receiptDate = dayjs(receipt.date);
     const today = dayjs();
-    
+
     if (dateFilter === 'today') {
       matchesDate = receiptDate.isSame(today, 'day');
     } else if (dateFilter === 'week') {
@@ -530,15 +534,17 @@ const ViewReceipts = () => {
     } else if (dateFilter === 'month') {
       matchesDate = receiptDate.isSame(today, 'month');
     }
-    
-    return matchesSearch && matchesDate;
+
+    const passes = matchesSearch && matchesDate;
+
+    return passes;
   });
 
   // Sort receipts
   const sortedReceipts = [...filteredReceipts].sort((a, b) => {
     let aVal = a[sortBy];
     let bVal = b[sortBy];
-    
+
     if (sortBy === 'date') {
       aVal = new Date(aVal);
       bVal = new Date(bVal);
@@ -549,7 +555,7 @@ const ViewReceipts = () => {
       aVal = String(aVal || '').toLowerCase();
       bVal = String(bVal || '').toLowerCase();
     }
-    
+
     if (sortOrder === 'asc') {
       return aVal > bVal ? 1 : -1;
     } else {
@@ -572,22 +578,20 @@ const ViewReceipts = () => {
   };
 
   const exportToCSV = () => {
-    const headers = ['Sr.No', 'Customer Name', 'Date', 'Total Income', 'Payment', 'Final Total', 'Balance'];
+    const headers = [t('receipts.table.srNo'), t('receipts.table.customerName'), t('receipts.table.date'), t('receipts.table.payment'), t('receipts.table.finalTotal')];
     const rows = sortedReceipts.map(r => [
       r.customerSrNo,
       r.customerName,
       dayjs(r.date).format('DD-MM-YYYY'),
-      r.totalIncome || 0,
       r.payment || 0,
-      r.finalTotalAfterChuk || 0,
-      r.remainingBalance || 0
+      r.finalTotalAfterChuk || 0
     ]);
-    
+
     const csvContent = [
       headers.join(','),
       ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
     ].join('\n');
-    
+
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -595,16 +599,14 @@ const ViewReceipts = () => {
     a.download = `receipts_${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
-    toast.success('Receipts exported successfully!');
+    toast.success(t('receipts.messages.exportSuccess'));
   };
 
   // Calculate stats
   const totalReceipts = enrichedReceipts.length;
-  const totalIncome = enrichedReceipts.reduce((sum, r) => sum + (toNum(r.totalIncome) || 0), 0);
-  const totalBalance = enrichedReceipts.reduce((sum, r) => sum + (toNum(r.finalTotalAfterChuk) || 0), 0);
 
   if (loading) {
-    return <LoadingSpinner message="Loading Receipts..." />;
+    return <LoadingSpinner message={t('receipts.messages.loading')} />;
   }
 
   return (
@@ -718,7 +720,7 @@ const ViewReceipts = () => {
           autoClose={3000}
           hideProgressBar={false}
         />
-        
+
         <div className="max-w-7xl mx-auto">
           {/* Header Section */}
           <div className="bg-white rounded-xl shadow-md p-6 mb-6">
@@ -728,61 +730,19 @@ const ViewReceipts = () => {
                   <div className="bg-blue-100 p-3 rounded-lg">
                     <FaFileInvoice className="text-blue-600 text-2xl" />
                   </div>
-                  View Receipts
+                  {t('receipts.title')}
                 </h1>
-                <p className="text-gray-600 mt-2">Manage and view all your receipts</p>
+                <p className="text-gray-600 mt-2">{t('receipts.description')}</p>
               </div>
               <button
                 onClick={exportToCSV}
                 className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition shadow-md"
               >
-                <FaFileExport /> Export
+                <FaFileExport /> {t('receipts.actions.export')}
               </button>
             </div>
           </div>
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-blue-500">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-500 text-sm font-medium">Total Receipts</p>
-                  <p className="text-3xl font-bold text-gray-800 mt-1">{totalReceipts}</p>
-                </div>
-                <div className="bg-blue-100 p-3 rounded-lg">
-                  <FaFileInvoice className="text-blue-600 text-2xl" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-green-500">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-500 text-sm font-medium">Total Income</p>
-                  <p className="text-2xl font-bold text-gray-800 mt-1">
-                    {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(totalIncome)}
-                  </p>
-                </div>
-                <div className="bg-green-100 p-3 rounded-lg">
-                  <FaDollarSign className="text-green-600 text-2xl" />
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl shadow-md p-6 border-l-4 border-purple-500">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-gray-500 text-sm font-medium">Total Balance</p>
-                  <p className="text-2xl font-bold text-gray-800 mt-1">
-                    {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(totalBalance)}
-                  </p>
-                </div>
-                <div className="bg-purple-100 p-3 rounded-lg">
-                  <FaDollarSign className="text-purple-600 text-2xl" />
-                </div>
-              </div>
-            </div>
-          </div>
 
           {/* Filters and View Toggle */}
           <div className="bg-white rounded-xl shadow-md p-6 mb-6">
@@ -792,7 +752,7 @@ const ViewReceipts = () => {
                 <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Search by name, business or Sr.No..."
+                  placeholder={t('receipts.searchPlaceholder')}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
@@ -807,10 +767,10 @@ const ViewReceipts = () => {
                   onChange={(e) => setDateFilter(e.target.value)}
                   className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition appearance-none bg-white"
                 >
-                  <option value="all">All Time</option>
-                  <option value="today">Today</option>
-                  <option value="week">Last 7 Days</option>
-                  <option value="month">This Month</option>
+                  <option value="all">{t('receipts.filters.allTime')}</option>
+                  <option value="today">{t('receipts.filters.today')}</option>
+                  <option value="week">{t('receipts.filters.last7Days')}</option>
+                  <option value="month">{t('receipts.filters.thisMonth')}</option>
                 </select>
               </div>
 
@@ -818,23 +778,21 @@ const ViewReceipts = () => {
               <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition ${
-                    viewMode === 'list' 
-                      ? 'bg-blue-600 text-white shadow-md' 
-                      : 'text-gray-600 hover:bg-gray-200'
-                  }`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition ${viewMode === 'list'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-gray-600 hover:bg-gray-200'
+                    }`}
                 >
-                  <FaList /> List
+                  <FaList /> {t('receipts.viewMode.list')}
                 </button>
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition ${
-                    viewMode === 'grid' 
-                      ? 'bg-blue-600 text-white shadow-md' 
-                      : 'text-gray-600 hover:bg-gray-200'
-                  }`}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition ${viewMode === 'grid'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-gray-600 hover:bg-gray-200'
+                    }`}
                 >
-                  <FaTh /> Grid
+                  <FaTh /> {t('receipts.viewMode.grid')}
                 </button>
               </div>
             </div>
@@ -843,7 +801,7 @@ const ViewReceipts = () => {
           {/* Receipts Display */}
           <div className="bg-white rounded-xl shadow-md p-6">
             <h2 className="text-xl font-bold text-gray-800 mb-4">
-              Receipts ({sortedReceipts.length})
+              {t('receipts.title')} ({sortedReceipts.length})
             </h2>
 
             {/* List View */}
@@ -852,48 +810,48 @@ const ViewReceipts = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
                     <tr>
-                      <th 
+                      <th
                         onClick={() => handleSort('customerSrNo')}
                         className="py-4 px-4 text-left text-sm font-semibold cursor-pointer hover:bg-blue-700 transition"
                       >
                         <div className="flex items-center gap-2">
-                          Sr.No {sortBy === 'customerSrNo' && (sortOrder === 'asc' ? '↑' : '↓')}
+                          {t('receipts.table.srNo')} {sortBy === 'customerSrNo' && (sortOrder === 'asc' ? '↑' : '↓')}
                         </div>
                       </th>
-                      <th 
+                      <th
                         onClick={() => handleSort('customerName')}
                         className="py-4 px-4 text-left text-sm font-semibold cursor-pointer hover:bg-blue-700 transition"
                       >
                         <div className="flex items-center gap-2">
-                          Customer {sortBy === 'customerName' && (sortOrder === 'asc' ? '↑' : '↓')}
+                          {t('receipts.table.customerName')} {sortBy === 'customerName' && (sortOrder === 'asc' ? '↑' : '↓')}
                         </div>
                       </th>
-                      <th 
+                      <th
+                        onClick={() => handleSort('customerCompany')}
+                        className="py-4 px-4 text-left text-sm font-semibold cursor-pointer hover:bg-blue-700 transition"
+                      >
+                        <div className="flex items-center gap-2">
+                          {t('receipts.table.companyName')} {sortBy === 'customerCompany' && (sortOrder === 'asc' ? '↑' : '↓')}
+                        </div>
+                      </th>
+                      <th
                         onClick={() => handleSort('date')}
                         className="py-4 px-4 text-left text-sm font-semibold cursor-pointer hover:bg-blue-700 transition"
                       >
                         <div className="flex items-center gap-2">
-                          Date {sortBy === 'date' && (sortOrder === 'asc' ? '↑' : '↓')}
+                          {t('receipts.table.date')} {sortBy === 'date' && (sortOrder === 'asc' ? '↑' : '↓')}
                         </div>
                       </th>
-                      <th 
-                        onClick={() => handleSort('totalIncome')}
-                        className="py-4 px-4 text-left text-sm font-semibold cursor-pointer hover:bg-blue-700 transition"
-                      >
-                        <div className="flex items-center gap-2">
-                          Income {sortBy === 'totalIncome' && (sortOrder === 'asc' ? '↑' : '↓')}
-                        </div>
-                      </th>
-                      <th 
+                      <th
                         onClick={() => handleSort('finalTotalAfterChuk')}
                         className="py-4 px-4 text-left text-sm font-semibold cursor-pointer hover:bg-blue-700 transition"
                       >
                         <div className="flex items-center gap-2">
-                          Balance {sortBy === 'finalTotalAfterChuk' && (sortOrder === 'asc' ? '↑' : '↓')}
+                          {t('receipts.table.finalTotal')} {sortBy === 'finalTotalAfterChuk' && (sortOrder === 'asc' ? '↑' : '↓')}
                         </div>
                       </th>
                       <th className="py-4 px-4 text-center text-sm font-semibold">
-                        Actions
+                        {t('receipts.table.actions')}
                       </th>
                     </tr>
                   </thead>
@@ -902,11 +860,10 @@ const ViewReceipts = () => {
                       sortedReceipts.map((receipt) => (
                         <tr
                           key={receipt._id}
-                          className={`transition ${
-                            receipt.isLatest 
-                              ? 'bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 border-l-4 border-green-500' 
-                              : 'hover:bg-blue-50'
-                          }`}
+                          className={`transition ${receipt.isLatest
+                            ? 'bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 border-l-4 border-green-500'
+                            : 'hover:bg-blue-50'
+                            }`}
                         >
                           <td className="py-4 px-4 font-bold text-gray-800">
                             {receipt.customerSrNo}
@@ -924,15 +881,15 @@ const ViewReceipts = () => {
                             </div>
                           </td>
                           <td className="py-4 px-4">
+                            <div className="text-gray-700">
+                              <p className="font-medium">{receipt.customerCompany || 'N/A'}</p>
+                            </div>
+                          </td>
+                          <td className="py-4 px-4">
                             <div className="flex items-center gap-2 text-gray-600">
                               <FaCalendarAlt className="text-gray-400" />
                               {dayjs(receipt.date).format("DD-MM-YYYY HH:mm")}
                             </div>
-                          </td>
-                          <td className="py-4 px-4">
-                            <span className="font-semibold text-green-600">
-                              {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(toNum(receipt.totalIncome))}
-                            </span>
                           </td>
                           <td className="py-4 px-4">
                             <span className={`font-semibold ${toNum(receipt.finalTotalAfterChuk) >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
@@ -976,15 +933,15 @@ const ViewReceipts = () => {
                     ) : (
                       <tr>
                         <td
-                          colSpan="6"
+                          colSpan="7"
                           className="text-center py-12 text-gray-500"
                         >
                           <div className="flex flex-col items-center gap-3">
                             <div className="bg-gray-100 p-4 rounded-full">
                               <FaFileInvoice className="text-gray-400 text-4xl" />
                             </div>
-                            <p className="font-medium">No receipts found</p>
-                            <p className="text-sm">Try adjusting your filters</p>
+                            <p className="font-medium">{t('receipts.messages.noReceipts')}</p>
+                            <p className="text-sm">{t('common.noResults')}</p>
                           </div>
                         </td>
                       </tr>
@@ -1001,11 +958,10 @@ const ViewReceipts = () => {
                   sortedReceipts.map((receipt) => (
                     <div
                       key={receipt._id}
-                      className={`bg-white rounded-xl p-5 hover:shadow-lg transition-all ${
-                        receipt.isLatest
-                          ? 'border-2 border-green-500 bg-gradient-to-br from-green-50 to-emerald-50 shadow-md'
-                          : 'border border-gray-200 hover:border-blue-300'
-                      }`}
+                      className={`bg-white rounded-xl p-5 hover:shadow-lg transition-all ${receipt.isLatest
+                        ? 'border-2 border-green-500 bg-gradient-to-br from-green-50 to-emerald-50 shadow-md'
+                        : 'border border-gray-200 hover:border-blue-300'
+                        }`}
                     >
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-3">
@@ -1013,9 +969,8 @@ const ViewReceipts = () => {
                             <FaFileInvoice className={`text-xl ${receipt.isLatest ? 'text-green-600' : 'text-blue-600'}`} />
                           </div>
                           <div>
-                            <span className={`text-xs font-bold px-2 py-1 rounded ${
-                              receipt.isLatest ? 'bg-green-500 text-white' : 'bg-blue-600 text-white'
-                            }`}>
+                            <span className={`text-xs font-bold px-2 py-1 rounded ${receipt.isLatest ? 'bg-green-500 text-white' : 'bg-blue-600 text-white'
+                              }`}>
                               #{receipt.customerSrNo}
                             </span>
                             {receipt.isLatest && (
@@ -1028,26 +983,23 @@ const ViewReceipts = () => {
                       </div>
 
                       <h3 className="text-lg font-bold text-gray-800 mb-2">{receipt.customerName}</h3>
-                      <p className="text-sm text-gray-500 mb-4">{receipt.businessName}</p>
-                      
+                      <p className="text-sm text-gray-600 mb-1">
+                        <span className="font-semibold">{t('receipts.table.companyName')}:</span> {receipt.customerCompany || 'N/A'}
+                      </p>
+                      <p className="text-xs text-gray-500 mb-3">{receipt.businessName}</p>
+
                       <div className="space-y-2 mb-4 pb-4 border-b">
                         <div className="flex items-center justify-between">
                           <span className="text-sm text-gray-600 flex items-center gap-2">
                             <FaCalendarAlt className="text-gray-400" />
-                            Date
+                            {t('receipts.table.date')}
                           </span>
                           <span className="font-medium text-gray-800">
                             {dayjs(receipt.date).format("DD-MM-YYYY HH:mm")}
                           </span>
                         </div>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">Income</span>
-                          <span className="font-semibold text-green-600">
-                            {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(toNum(receipt.totalIncome))}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">Balance</span>
+                          <span className="text-sm text-gray-600">Final Total</span>
                           <span className={`font-semibold ${toNum(receipt.finalTotalAfterChuk) >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
                             {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(Math.abs(toNum(receipt.finalTotalAfterChuk)))}
                           </span>
@@ -1145,12 +1097,6 @@ const ViewReceipts = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-gray-800 mb-3">Financial Summary</h3>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-500">
-                      <p className="text-sm text-gray-600 mb-1">Total Income</p>
-                      <p className="text-xl font-bold text-blue-600">
-                        {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 }).format(toNum(selectedReceipt.totalIncome))}
-                      </p>
-                    </div>
                     <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-500">
                       <p className="text-sm text-gray-600 mb-1">Payment</p>
                       <p className="text-xl font-bold text-green-600">

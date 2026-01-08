@@ -3,9 +3,10 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import LoadingSpinner from "./components/LoadingSpinner";
-import { FaUsers, FaUndo, FaBolt, FaReceipt, FaPlus, FaMinus, FaChevronDown, FaChevronUp, FaSave } from "react-icons/fa";
+import { FaUsers, FaUndo, FaBolt, FaReceipt, FaPlus, FaMinus, FaChevronDown, FaChevronUp, FaSave, FaSearch } from "react-icons/fa";
 import dayjs from "dayjs";
 import { useNavigate } from "react-router-dom";
+import { useLanguage } from "../../contexts/LanguageContext";
 
 const API_BASE_URI = import.meta.env.VITE_API_BASE_URL;
 
@@ -19,6 +20,7 @@ const COMPANY_NAMES = [
 ];
 
 const ShortcutTab = ({ businessName }) => {
+  const { t } = useLanguage();
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -26,6 +28,8 @@ const ShortcutTab = ({ businessName }) => {
   const [expandedFinancials, setExpandedFinancials] = useState({});
   const [savingCustomers, setSavingCustomers] = useState({});
   const [selectedDate, setSelectedDate] = useState(dayjs().format("YYYY-MM-DD"));
+  const [searchQuery, setSearchQuery] = useState("");
+  const [allReceipts, setAllReceipts] = useState([]);
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
@@ -50,7 +54,7 @@ const ShortcutTab = ({ businessName }) => {
       setCustomers(sortedCustomers);
     } catch (err) {
       console.error("Error fetching customers:", err);
-      toast.error("Failed to fetch customers");
+      toast.error(t('customers.messages.saveFailed'));
     } finally {
       setLoading(false);
     }
@@ -61,15 +65,18 @@ const ShortcutTab = ({ businessName }) => {
       const res = await axios.get(`${API_BASE_URI}/api/receipts`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       console.log("Selected date:", date);
       console.log("All receipts:", res.data.receipts);
-      
+
+      // Store all receipts for company-based filtering
+      setAllReceipts(res.data.receipts || []);
+
       // Sort receipts by date (latest first) to get most recent financial data
-      const sortedReceipts = res.data.receipts.sort((a, b) => 
+      const sortedReceipts = res.data.receipts.sort((a, b) =>
         new Date(b.date) - new Date(a.date)
       );
-      
+
       const receiptsForDate = sortedReceipts.filter((receipt) => {
         const receiptDate = dayjs(receipt.date).format("YYYY-MM-DD");
         console.log(`Comparing: ${receiptDate} === ${date}`, receiptDate === date);
@@ -81,7 +88,7 @@ const ShortcutTab = ({ businessName }) => {
       // Auto-fill data for customers who have receipts on this date
       // If multiple receipts exist for same customer on same date, use the latest one
       const newShortcutData = {};
-      
+
       // Group receipts by customer and pick the latest for each customer on this date
       const customerReceiptsMap = {};
       receiptsForDate.forEach((receipt) => {
@@ -91,16 +98,16 @@ const ShortcutTab = ({ businessName }) => {
         }
         customerReceiptsMap[customerId].push(receipt);
       });
-      
+
       // For each customer, pick the latest receipt (sort by createdAt or updatedAt)
       Object.keys(customerReceiptsMap).forEach((customerId) => {
         const customerReceipts = customerReceiptsMap[customerId];
-        
+
         // Sort by updatedAt or createdAt to get the latest receipt
-        const latestReceipt = customerReceipts.sort((a, b) => 
+        const latestReceipt = customerReceipts.sort((a, b) =>
           new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt)
         )[0];
-        
+
         // Map gameRows properly with all fields
         const mappedGameRows = (latestReceipt.gameRows || []).map((row) => {
           // Set default multiplier based on type if not present (for old receipts)
@@ -112,7 +119,7 @@ const ShortcutTab = ({ businessName }) => {
               multiplier = 9;
             }
           }
-          
+
           return {
             type: row.type || '',
             income: row.income || '',
@@ -125,7 +132,7 @@ const ShortcutTab = ({ businessName }) => {
             special: row.special || { type: 'jackpot', val1: '', val2: '' },
           };
         });
-        
+
         newShortcutData[customerId] = {
           open: latestReceipt.openCloseValues?.open || "",
           close: latestReceipt.openCloseValues?.close || "",
@@ -138,7 +145,7 @@ const ShortcutTab = ({ businessName }) => {
           cuttingAmount: latestReceipt.cuttingAmount || 0,
         };
       });
-      
+
       // Get latest financial data for ALL customers (for those without receipts on selected date)
       const latestFinancialData = {};
       customers.forEach((customer) => {
@@ -151,7 +158,7 @@ const ShortcutTab = ({ businessName }) => {
           };
         }
       });
-      
+
       // For customers WITHOUT receipts on this date, initialize with their latest financial data
       customers.forEach((customer) => {
         if (!newShortcutData[customer._id]) {
@@ -162,22 +169,22 @@ const ShortcutTab = ({ businessName }) => {
             jod: "",
             company: "",
             gameRows: [
-              { 
-                type: 'आ.', 
-                income: '', 
-                o: '', 
-                jod: '', 
+              {
+                type: 'आ.',
+                income: '',
+                o: '',
+                jod: '',
                 ko: '',
                 multiplier: 8,
                 pan: { val1: '', val2: '' },
                 gun: { val1: '', val2: '' },
                 special: { val1: '', val2: '' },
               },
-              { 
-                type: 'कु.', 
-                income: '', 
-                o: '', 
-                jod: '', 
+              {
+                type: 'कु.',
+                income: '',
+                o: '',
+                jod: '',
                 ko: '',
                 multiplier: 9,
                 pan: { val1: '', val2: '' },
@@ -192,12 +199,12 @@ const ShortcutTab = ({ businessName }) => {
           };
         }
       });
-      
+
       console.log("Setting shortcut data:", newShortcutData);
       setShortcutData(newShortcutData);
     } catch (err) {
       console.error("Error fetching receipts:", err);
-      toast.error("Failed to load receipts for selected date");
+      toast.error(t('receipts.messages.deleteFailed'));
     }
   };
 
@@ -211,12 +218,126 @@ const ShortcutTab = ({ businessName }) => {
     }));
   };
 
+  const handleCompanyChange = (customerId, companyName) => {
+    // Find receipts for this customer, company, and selected date
+    const sortedReceipts = [...allReceipts].sort((a, b) =>
+      new Date(b.date) - new Date(a.date)
+    );
+
+    const receiptsForDate = sortedReceipts.filter((receipt) => {
+      const receiptDate = dayjs(receipt.date).format("YYYY-MM-DD");
+      return receiptDate === selectedDate;
+    });
+
+    // Find receipt for this customer and company on the selected date
+    const matchingReceipt = receiptsForDate.find(
+      (receipt) => receipt.customerId === customerId && receipt.customerCompany === companyName
+    );
+
+    if (matchingReceipt) {
+      // Receipt found - populate the form with receipt data
+      const mappedGameRows = (matchingReceipt.gameRows || []).map((row) => {
+        let multiplier = row.multiplier;
+        if (multiplier === undefined && row.type) {
+          if (row.type === 'आ.' || row.type === 'आ') {
+            multiplier = 8;
+          } else if (row.type === 'कु.' || row.type === 'कु') {
+            multiplier = 9;
+          }
+        }
+
+        return {
+          type: row.type || '',
+          income: row.income || '',
+          o: row.o || '',
+          jod: row.jod || '',
+          ko: row.ko || '',
+          multiplier: multiplier,
+          pan: row.pan || { type: 'sp', val1: '', val2: '' },
+          gun: row.gun || { val1: '', val2: '' },
+          special: row.special || { type: 'jackpot', val1: '', val2: '' },
+        };
+      });
+
+      setShortcutData((prev) => ({
+        ...prev,
+        [customerId]: {
+          open: matchingReceipt.openCloseValues?.open || "",
+          close: matchingReceipt.openCloseValues?.close || "",
+          jod: matchingReceipt.openCloseValues?.jod || "",
+          company: companyName,
+          gameRows: mappedGameRows,
+          jama: matchingReceipt.jama || 0,
+          chuk: matchingReceipt.chuk || 0,
+          advanceAmount: matchingReceipt.advanceAmount || 0,
+          cuttingAmount: matchingReceipt.cuttingAmount || 0,
+        },
+      }));
+
+      toast.info(`Loaded existing receipt for ${companyName}`);
+    } else {
+      // No receipt found - clear the form with default values
+      // Get latest financial data for this customer
+      const customerReceipts = sortedReceipts.filter(r => r.customerId === customerId);
+      let latestFinancialData = { previousBalance: 0, previousAdvance: 0 };
+
+      if (customerReceipts.length > 0) {
+        const latestReceipt = customerReceipts[0];
+        latestFinancialData = {
+          previousBalance: latestReceipt.remainingBalance || 0,
+          previousAdvance: latestReceipt.finalTotal || 0,
+        };
+      }
+
+      setShortcutData((prev) => ({
+        ...prev,
+        [customerId]: {
+          open: "",
+          close: "",
+          jod: "",
+          company: companyName,
+          gameRows: [
+            {
+              type: 'आ.',
+              income: '',
+              o: '',
+              jod: '',
+              ko: '',
+              multiplier: 8,
+              pan: { val1: '', val2: '' },
+              gun: { val1: '', val2: '' },
+              special: { val1: '', val2: '' },
+            },
+            {
+              type: 'कु.',
+              income: '',
+              o: '',
+              jod: '',
+              ko: '',
+              multiplier: 9,
+              pan: { val1: '', val2: '' },
+              gun: { val1: '', val2: '' },
+              special: { val1: '', val2: '' },
+            },
+          ],
+          jama: latestFinancialData.previousBalance,
+          chuk: 0,
+          advanceAmount: latestFinancialData.previousAdvance,
+          cuttingAmount: 0,
+        },
+      }));
+
+      toast.info(`No existing receipt found for ${companyName}. Form cleared for new receipt.`);
+    }
+  };
+
+
   const handleGameRowChange = (customerId, rowIndex, field, value) => {
     setShortcutData((prev) => {
       const customerData = prev[customerId] || {};
       const gameRows = customerData.gameRows || [];
       const updatedRows = [...gameRows];
-      
+
       if (field.includes('pan') || field.includes('gun') || field.includes('special')) {
         const [mainField, subField] = field.split('.');
         updatedRows[rowIndex] = {
@@ -232,7 +353,7 @@ const ShortcutTab = ({ businessName }) => {
           [field]: value,
         };
       }
-      
+
       return {
         ...prev,
         [customerId]: {
@@ -247,19 +368,19 @@ const ShortcutTab = ({ businessName }) => {
     setShortcutData((prev) => {
       const customerData = prev[customerId] || {};
       const gameRows = customerData.gameRows || [];
-      
+
       // Set multiplier based on type
       const multiplier = type === 'आ.' ? 8 : type === 'कु.' ? 9 : undefined;
-      
+
       return {
         ...prev,
         [customerId]: {
           ...customerData,
-          gameRows: [...gameRows, { 
-            type: type, 
-            income: '', 
-            o: '', 
-            jod: '', 
+          gameRows: [...gameRows, {
+            type: type,
+            income: '',
+            o: '',
+            jod: '',
             ko: '',
             multiplier: multiplier,
             pan: { val1: '', val2: '' },
@@ -277,28 +398,28 @@ const ShortcutTab = ({ businessName }) => {
       if (customerData.gameRows && customerData.gameRows.length > 0) {
         return prev; // Already initialized
       }
-      
+
       return {
         ...prev,
         [customerId]: {
           ...customerData,
           gameRows: [
-            { 
-              type: 'आ.', 
-              income: '', 
-              o: '', 
-              jod: '', 
+            {
+              type: 'आ.',
+              income: '',
+              o: '',
+              jod: '',
               ko: '',
               multiplier: 8,
               pan: { val1: '', val2: '' },
               gun: { val1: '', val2: '' },
               special: { val1: '', val2: '' },
             },
-            { 
-              type: 'कु.', 
-              income: '', 
-              o: '', 
-              jod: '', 
+            {
+              type: 'कु.',
+              income: '',
+              o: '',
+              jod: '',
               ko: '',
               multiplier: 9,
               pan: { val1: '', val2: '' },
@@ -313,7 +434,7 @@ const ShortcutTab = ({ businessName }) => {
 
   const calculateCustomerTotals = (customerData) => {
     const gameRows = customerData.gameRows || [];
-    
+
     // Calculate O, Jod, Ko totals with multipliers
     let oFinalTotal = 0;
     let jodFinalTotal = 0;
@@ -370,15 +491,15 @@ const ShortcutTab = ({ businessName }) => {
     const deduction = totalIncome * 0.1;
     const afterDeduction = totalIncome - deduction;
     const remainingBalance = afterDeduction - payment;
-    
+
     // Get user inputs
     const jama = Number(customerData.jama) || 0;
     const totalDue = remainingBalance;
     const jamaTotal = totalDue - jama;
-    
+
     const chuk = Number(customerData.chuk) || 0;
     const finalTotalAfterChuk = jamaTotal - chuk;
-    
+
     const advanceAmount = Number(customerData.advanceAmount) || 0;
     const cuttingAmount = Number(customerData.cuttingAmount) || 0;
     const finalTotal = finalTotalAfterChuk - advanceAmount - cuttingAmount;
@@ -407,7 +528,7 @@ const ShortcutTab = ({ businessName }) => {
     setShortcutData((prev) => {
       const customerData = prev[customerId] || {};
       const gameRows = customerData.gameRows || [];
-      
+
       return {
         ...prev,
         [customerId]: {
@@ -424,7 +545,7 @@ const ShortcutTab = ({ businessName }) => {
     );
 
     if (receiptsToCreate.length === 0) {
-      toast.warning("Please enter at least one field for any customer");
+      toast.warning(t('common.required'));
       return;
     }
 
@@ -509,7 +630,7 @@ const ShortcutTab = ({ businessName }) => {
       if (successCount > 0) {
         toast.success(`Successfully created ${successCount} receipt(s)!`);
         setShortcutData({});
-        
+
         // Navigate to view receipts after a short delay
         setTimeout(() => {
           navigate("/vendor/viewReceipts");
@@ -532,13 +653,36 @@ const ShortcutTab = ({ businessName }) => {
     const data = shortcutData[customerId];
 
     if (!data || (!data.open && !data.close && (!data.gameRows || data.gameRows.length === 0))) {
-      toast.warning("Please enter some data before saving");
+      toast.warning(t('common.required'));
+      return;
+    }
+
+    if (!data.company) {
+      toast.warning(t('shortcuts.selectCompany'));
       return;
     }
 
     setSavingCustomers(prev => ({ ...prev, [customerId]: true }));
 
     try {
+      // Check if a receipt already exists for this customer, company, and date
+      const receiptsForDate = allReceipts.filter((receipt) => {
+        const receiptDate = dayjs(receipt.date).format("YYYY-MM-DD");
+        return (
+          receiptDate === selectedDate &&
+          receipt.customerId === customerId &&
+          receipt.customerCompany === data.company
+        );
+      });
+
+      let existingReceipt = null;
+      if (receiptsForDate.length > 0) {
+        // Use the most recent receipt if multiple exist
+        existingReceipt = receiptsForDate.sort((a, b) =>
+          new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt)
+        )[0];
+      }
+
       // Prepare game rows from shortcut data
       const gameRows = (data.gameRows || []).map((row, index) => ({
         id: Date.now() + index,
@@ -561,8 +705,11 @@ const ShortcutTab = ({ businessName }) => {
         customerName: customer.name,
         customerCompany: data.company || "",
         businessName: businessName || "Game Book",
-        date: new Date().toISOString(),
-        day: dayjs().format("dddd"),
+        // Combine selected date with current time to preserve timestamp
+        date: selectedDate
+          ? dayjs(selectedDate).hour(dayjs().hour()).minute(dayjs().minute()).second(dayjs().second()).toISOString()
+          : new Date().toISOString(),
+        day: dayjs(selectedDate || new Date()).format("dddd"),
         openCloseValues: {
           open: data.open || "",
           close: data.close || "",
@@ -592,12 +739,25 @@ const ShortcutTab = ({ businessName }) => {
         finalTotal: totals.finalTotal,
       };
 
-      await axios.post(`${API_BASE_URI}/api/receipts`, receiptData, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      if (existingReceipt) {
+        // UPDATE existing receipt
+        await axios.put(`${API_BASE_URI}/api/receipts/${existingReceipt._id}`, receiptData, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-      toast.success(`Receipt created for ${customer.name}!`);
-      
+        toast.success(t('receipts.form.success'));
+      } else {
+        // CREATE new receipt
+        await axios.post(`${API_BASE_URI}/api/receipts`, receiptData, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        toast.success(t('receipts.form.success'));
+      }
+
+      // Refresh receipts to get the latest data
+      await fetchReceiptsForDate(selectedDate);
+
       // Clear this customer's data
       setShortcutData(prev => {
         const updated = { ...prev };
@@ -605,8 +765,8 @@ const ShortcutTab = ({ businessName }) => {
         return updated;
       });
     } catch (err) {
-      console.error(`Error creating receipt for ${customer.name}:`, err);
-      toast.error(`Failed to create receipt for ${customer.name}`);
+      console.error(`Error saving receipt for ${customer.name}:`, err);
+      toast.error(t('receipts.form.error'));
     } finally {
       setSavingCustomers(prev => ({ ...prev, [customerId]: false }));
     }
@@ -622,12 +782,12 @@ const ShortcutTab = ({ businessName }) => {
   const handleReset = () => {
     if (window.confirm("Are you sure you want to clear all shortcuts?")) {
       setShortcutData({});
-      toast.info("Shortcuts cleared");
+      toast.info(t('shortcuts.success'));
     }
   };
 
   if (loading) {
-    return <LoadingSpinner message="Loading customers..." />;
+    return <LoadingSpinner message={t('customers.messages.loading')} />;
   }
 
   return (
@@ -677,14 +837,13 @@ const ShortcutTab = ({ businessName }) => {
               <FaReceipt className="text-white text-xl" />
             </div>
             <div>
-               <p className="text-lg font-bold text-gray-800">
+              <p className="text-lg font-bold text-gray-800">
                 {dayjs(selectedDate).format("DD MMMM YYYY, dddd")}
               </p>
             </div>
           </div>
         </div>
 
-        
 
         {/* Customers Grid */}
         <div className="bg-white rounded-xl shadow-md p-6">
@@ -693,463 +852,509 @@ const ShortcutTab = ({ businessName }) => {
             Customer Shortcuts
           </h2>
 
-          <div className="grid grid-cols-1 gap-6">
-            {customers.map((customer, index) => {
-              const customerData = shortcutData[customer._id] || {};
-              const gameRows = customerData.gameRows || [];
-              const totals = calculateCustomerTotals(customerData);
-              
-              // Initialize default rows only if customer has no data at all (not from fetched receipts)
-              if (!shortcutData[customer._id]) {
-                setTimeout(() => initializeDefaultRows(customer._id), 0);
-              }
-              
-              return (
-                <div
-                  key={customer._id}
-                  className="bg-gradient-to-br from-white to-slate-50 border-2 border-gray-200 rounded-xl overflow-hidden hover:shadow-lg hover:border-slate-300 transition-all"
-                >
-                  {/* Customer Header */}
-                  <div className="bg-gradient-to-r from-slate-600 to-slate-700 text-white p-4">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-bold bg-white/20 px-2 py-1 rounded">
-                        #{index + 1}
-                      </span>
-                      <span className="text-xs opacity-75">Sr.No: {customer.srNo}</span>
-                    </div>
-                    <h3 className="text-lg font-bold" title={customer.name}>
-                      {customer.name}
-                    </h3>
-                    {customer.company && (
-                      <p className="text-sm opacity-90 mt-1" title={customer.company}>
-                        {customer.company}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="p-5">
-
-                  {/* Company Dropdown */}
-                  <div className="mb-4 pb-4 border-b border-gray-200">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Company Name
-                    </label>
-                    <select
-                      value={customerData.company || ""}
-                      onChange={(e) =>
-                        handleInputChange(customer._id, "company", e.target.value)
-                      }
-                      className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition bg-white"
-                    >
-                      <option value="">Select Company</option>
-                      {COMPANY_NAMES.map((company) => (
-                        <option key={company} value={company}>
-                          {company}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Open/Close/Jod Fields */}
-                  <div className="grid grid-cols-3 gap-3 mb-4 pb-4 border-b border-gray-200">
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">
-                        ओ (Open)
-                      </label>
-                      <input
-                        type="text"
-                        value={customerData.open || ""}
-                        onChange={(e) =>
-                          handleInputChange(customer._id, "open", e.target.value)
-                        }
-                        placeholder="Open"
-                        className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">
-                        क्लो (Close)
-                      </label>
-                      <input
-                        type="text"
-                        value={customerData.close || ""}
-                        onChange={(e) =>
-                          handleInputChange(customer._id, "close", e.target.value)
-                        }
-                        placeholder="Close"
-                        className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-1">
-                        जोड (Jod)
-                      </label>
-                      <input
-                        type="text"
-                        value={customerData.jod || ""}
-                        onChange={(e) =>
-                          handleInputChange(customer._id, "jod", e.target.value)
-                        }
-                        placeholder="Jod"
-                        className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Game Rows */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-md font-bold text-gray-700">Game Rows</h4>
-                      <button
-                        onClick={() => addGameRow(customer._id, '')}
-                        className="flex items-center gap-1 bg-green-500 text-white px-3 py-1 rounded-lg hover:bg-green-600 transition text-sm"
-                      >
-                        <FaPlus size={12} /> Add Row
-                      </button>
-                    </div>
-
-                    {gameRows.length === 0 && (
-                      <p className="text-sm text-gray-500 italic text-center py-3">
-                        No game rows. Click "Add Row" to start.
-                      </p>
-                    )}
-
-                    {gameRows.map((row, rowIndex) => (
-                      <div
-                        key={rowIndex}
-                        className="bg-white border border-gray-300 rounded-lg p-3 relative"
-                      >
-                        <button
-                          onClick={() => removeGameRow(customer._id, rowIndex)}
-                          className="absolute top-2 right-2 text-red-500 hover:text-red-700 transition"
-                          title="Remove Row"
-                        >
-                          <FaMinus size={14} />
-                        </button>
-
-                        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">
-                              ओ. (Type)
-                            </label>
-                            <input
-                              type="text"
-                              value={row.type || ""}
-                              onChange={(e) =>
-                                handleGameRowChange(customer._id, rowIndex, "type", e.target.value)
-                              }
-                              placeholder="आ./कु."
-                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-slate-500"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">
-                              रक्कम (Income)
-                            </label>
-                            <input
-                              type="text"
-                              value={row.income || ""}
-                              onChange={(e) =>
-                                handleGameRowChange(customer._id, rowIndex, "income", e.target.value)
-                              }
-                              placeholder="Income"
-                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-slate-500"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">
-                              ओ. (O)
-                            </label>
-                            <input
-                              type="text"
-                              value={row.o || ""}
-                              onChange={(e) =>
-                                handleGameRowChange(customer._id, rowIndex, "o", e.target.value)
-                              }
-                              placeholder="O"
-                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-slate-500"
-                            />
-                            {row.multiplier !== undefined && (
-                              <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                                <span>*</span>
-                                <input
-                                  type="number"
-                                  value={row.multiplier || ''}
-                                  onChange={(e) =>
-                                    handleGameRowChange(customer._id, rowIndex, "multiplier", e.target.value)
-                                  }
-                                  className="w-10 text-center border border-gray-300 rounded px-1"
-                                />
-                                <span>= {((parseFloat(row.o) || 0) * (row.multiplier || 0)).toFixed(0)}</span>
-                              </div>
-                            )}
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">
-                              जोड (Jod)
-                            </label>
-                            <input
-                              type="text"
-                              value={row.jod || ""}
-                              onChange={(e) =>
-                                handleGameRowChange(customer._id, rowIndex, "jod", e.target.value)
-                              }
-                              placeholder="Jod"
-                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-slate-500"
-                            />
-                            {row.multiplier !== undefined && (
-                              <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                                <span>*</span>
-                                <input
-                                  type="number"
-                                  value={(row.multiplier || 0) * 10}
-                                  onChange={(e) =>
-                                    handleGameRowChange(customer._id, rowIndex, "multiplier", (parseFloat(e.target.value) || 0) / 10)
-                                  }
-                                  className="w-10 text-center border border-gray-300 rounded px-1"
-                                />
-                                <span>= {((parseFloat(row.jod) || 0) * (row.multiplier || 0) * 10).toFixed(0)}</span>
-                              </div>
-                            )}
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">
-                              को. (Ko)
-                            </label>
-                            <input
-                              type="text"
-                              value={row.ko || ""}
-                              onChange={(e) =>
-                                handleGameRowChange(customer._id, rowIndex, "ko", e.target.value)
-                              }
-                              placeholder="Ko"
-                              className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-slate-500"
-                            />
-                            {row.multiplier !== undefined && (
-                              <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                                <span>*</span>
-                                <input
-                                  type="number"
-                                  value={row.multiplier || ''}
-                                  onChange={(e) =>
-                                    handleGameRowChange(customer._id, rowIndex, "multiplier", e.target.value)
-                                  }
-                                  className="w-10 text-center border border-gray-300 rounded px-1"
-                                />
-                                <span>= {((parseFloat(row.ko) || 0) * (row.multiplier || 0)).toFixed(0)}</span>
-                              </div>
-                            )}
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">
-                              पान (Pan)
-                            </label>
-                            <div className="flex items-center gap-1">
-                              <input
-                                type="text"
-                                value={row.pan?.val1 || ""}
-                                onChange={(e) =>
-                                  handleGameRowChange(customer._id, rowIndex, "pan.val1", e.target.value)
-                                }
-                                placeholder="0"
-                                className="w-10 px-1 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-slate-500 text-center"
-                              />
-                              <span className="text-xs">×</span>
-                              <input
-                                type="text"
-                                value={row.pan?.val2 || ""}
-                                onChange={(e) =>
-                                  handleGameRowChange(customer._id, rowIndex, "pan.val2", e.target.value)
-                                }
-                                placeholder="0"
-                                className="w-10 px-1 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-slate-500 text-center"
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">
-                              गुण (Gun)
-                            </label>
-                            <div className="flex items-center gap-1">
-                              <input
-                                type="text"
-                                value={row.gun?.val1 || ""}
-                                onChange={(e) =>
-                                  handleGameRowChange(customer._id, rowIndex, "gun.val1", e.target.value)
-                                }
-                                placeholder="0"
-                                className="w-10 px-1 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-slate-500 text-center"
-                              />
-                              <span className="text-xs">×</span>
-                              <input
-                                type="text"
-                                value={row.gun?.val2 || ""}
-                                onChange={(e) =>
-                                  handleGameRowChange(customer._id, rowIndex, "gun.val2", e.target.value)
-                                }
-                                placeholder="0"
-                                className="w-10 px-1 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-slate-500 text-center"
-                              />
-                            </div>
-                          </div>
-                          <div>
-                            <label className="block text-xs font-medium text-gray-600 mb-1">
-                              जॅकपॉट (Special)
-                            </label>
-                            <div className="flex items-center gap-1">
-                              <input
-                                type="text"
-                                value={row.special?.val1 || ""}
-                                onChange={(e) =>
-                                  handleGameRowChange(customer._id, rowIndex, "special.val1", e.target.value)
-                                }
-                                placeholder="0"
-                                className="w-10 px-1 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-slate-500 text-center"
-                              />
-                              <span className="text-xs">×</span>
-                              <input
-                                type="text"
-                                value={row.special?.val2 || ""}
-                                onChange={(e) =>
-                                  handleGameRowChange(customer._id, rowIndex, "special.val2", e.target.value)
-                                }
-                                placeholder="0"
-                                className="w-10 px-1 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-slate-500 text-center"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Financial Summary (Collapsible) */}
-                  <div className="mt-4 pt-4 border-t border-gray-300">
-                    <button
-                      onClick={() => toggleFinancialSummary(customer._id)}
-                      className="w-full flex items-center justify-between text-left font-bold text-gray-700 mb-3 hover:text-slate-600 transition-colors"
-                    >
-                      <span className="text-md">Financial Summary</span>
-                      {expandedFinancials[customer._id] ? (
-                        <FaChevronUp className="text-sm" />
-                      ) : (
-                        <FaChevronDown className="text-sm" />
-                      )}
-                    </button>
-
-                    {expandedFinancials[customer._id] && (
-                      <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {/* Left Box */}
-                          <div className="bg-white border border-gray-300 rounded-lg p-3 space-y-2 text-sm">
-                        <div className="flex justify-between items-center">
-                          <span className="font-semibold">जमा:-</span>
-                          <input
-                            type="number"
-                            value={customerData.jama || ''}
-                            onChange={(e) =>
-                              handleInputChange(customer._id, "jama", e.target.value)
-                            }
-                            placeholder="0"
-                            className="w-24 text-right border border-gray-300 rounded px-2 py-1 text-sm"
-                          />
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-semibold">टो:-</span>
-                          <span className="font-bold">{totals.jamaTotal.toFixed(2)}</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="font-semibold">चूक (NA):-</span>
-                          <input
-                            type="number"
-                            value={customerData.chuk || ''}
-                            onChange={(e) =>
-                              handleInputChange(customer._id, "chuk", e.target.value)
-                            }
-                            placeholder="Enter amount"
-                            className="w-24 text-right border border-gray-300 rounded px-2 py-1 text-sm"
-                          />
-                        </div>
-                        <div className="flex justify-between pt-2 border-t border-gray-200">
-                          <span className="font-semibold">
-                            अंतिम टोटल {totals.finalTotalAfterChuk < 0 ? '(देणे)' : '(येणे)'}:-
-                          </span>
-                          <span className="font-bold text-lg text-slate-600">
-                            {Math.abs(totals.finalTotalAfterChuk).toFixed(2)}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Right Box */}
-                      <div className="bg-white border border-gray-300 rounded-lg p-3 space-y-2 text-sm">
-                        <div className="flex justify-between items-center">
-                          <span className="font-semibold">आड:-</span>
-                          <input
-                            type="number"
-                            value={customerData.advanceAmount || ''}
-                            onChange={(e) =>
-                              handleInputChange(customer._id, "advanceAmount", e.target.value)
-                            }
-                            placeholder="0"
-                            className="w-24 text-right border border-gray-300 rounded px-2 py-1 text-sm"
-                          />
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="font-semibold">कटिंग:-</span>
-                          <input
-                            type="number"
-                            value={customerData.cuttingAmount || ''}
-                            onChange={(e) =>
-                              handleInputChange(customer._id, "cuttingAmount", e.target.value)
-                            }
-                            placeholder="0"
-                            className="w-24 text-right border border-gray-300 rounded px-2 py-1 text-sm"
-                          />
-                        </div>
-                        <div className="flex justify-between pt-2 border-t border-gray-200">
-                          <span className="font-semibold">टो:-</span>
-                          <span className="font-bold text-lg text-green-600">
-                            {totals.finalTotal.toFixed(2)}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Status Indicator */}
-                  {(customerData.open || customerData.close || gameRows.length > 0) && (
-                    <div className="mt-3 flex items-center gap-2 text-xs text-green-600 font-medium">
-                      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                      Data entered - Ready to save receipt
-                    </div>
-                  )}
-
-                  {/* Save Button - Bottom */}
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <button
-                      onClick={() => handleSaveCustomer(customer._id)}
-                      disabled={savingCustomers[customer._id]}
-                      className="w-full bg-slate-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
-                    >
-                      <FaSave />
-                      {savingCustomers[customer._id] ? 'Saving Receipt...' : 'Save Receipt'}
-                    </button>
-                  </div>
-                  </div>
-                </div>
-              );
-            })}
+          {/* Search Bar */}
+          <div className="mb-6">
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <FaSearch className="text-gray-400" />
+              </div>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by customer name or SR number..."
+                className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition"
+              />
+            </div>
+            {searchQuery && (
+              <p className="text-sm text-gray-600 mt-2">
+                Showing results for: <span className="font-semibold">"{searchQuery}"</span>
+              </p>
+            )}
           </div>
 
-          {customers.length === 0 && (
-            <div className="text-center py-12 text-gray-500">
-              <FaUsers className="text-6xl mx-auto mb-4 text-gray-300" />
-              <p className="text-lg font-medium">No customers found</p>
-              <p className="text-sm">Add customers to start using shortcuts</p>
-            </div>
-          )}
+          <div className="grid grid-cols-1 gap-6">
+            {customers
+              .filter((customer) => {
+                if (!searchQuery.trim()) return true;
+
+                const query = searchQuery.toLowerCase().trim();
+                const customerName = customer.name?.toLowerCase() || "";
+                const srNo = customer.srNo?.toString() || "";
+
+                return customerName.includes(query) || srNo.includes(query);
+              })
+              .map((customer, index) => {
+                const customerData = shortcutData[customer._id] || {};
+                const gameRows = customerData.gameRows || [];
+                const totals = calculateCustomerTotals(customerData);
+
+                // Initialize default rows only if customer has no data at all (not from fetched receipts)
+                if (!shortcutData[customer._id]) {
+                  setTimeout(() => initializeDefaultRows(customer._id), 0);
+                }
+
+                return (
+                  <div
+                    key={customer._id}
+                    className="bg-gradient-to-br from-white to-slate-50 border-2 border-gray-200 rounded-xl overflow-hidden hover:shadow-lg hover:border-slate-300 transition-all"
+                  >
+                    {/* Customer Header */}
+                    <div className="bg-gradient-to-r from-slate-600 to-slate-700 text-white p-4">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-bold bg-white/20 px-2 py-1 rounded">
+                          #{index + 1}
+                        </span>
+                        <span className="text-xs opacity-75">Sr.No: {customer.srNo}</span>
+                      </div>
+                      <h3 className="text-lg font-bold" title={customer.name}>
+                        {customer.name}
+                      </h3>
+                      {customer.company && (
+                        <p className="text-sm opacity-90 mt-1" title={customer.company}>
+                          {customer.company}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="p-5">
+
+                      {/* Company Dropdown */}
+                      <div className="mb-4 pb-4 border-b border-gray-200">
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Company Name
+                        </label>
+                        <select
+                          value={customerData.company || ""}
+                          onChange={(e) =>
+                            handleCompanyChange(customer._id, e.target.value)
+                          }
+                          className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition bg-white"
+                        >
+                          <option value="">Select Company</option>
+                          {COMPANY_NAMES.map((company) => (
+                            <option key={company} value={company}>
+                              {company}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Open/Close/Jod Fields */}
+                      <div className="grid grid-cols-3 gap-3 mb-4 pb-4 border-b border-gray-200">
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-1">
+                            ओ (Open)
+                          </label>
+                          <input
+                            type="text"
+                            value={customerData.open || ""}
+                            onChange={(e) =>
+                              handleInputChange(customer._id, "open", e.target.value)
+                            }
+                            placeholder="Open"
+                            className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-1">
+                            क्लो (Close)
+                          </label>
+                          <input
+                            type="text"
+                            value={customerData.close || ""}
+                            onChange={(e) =>
+                              handleInputChange(customer._id, "close", e.target.value)
+                            }
+                            placeholder="Close"
+                            className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-1">
+                            जोड (Jod)
+                          </label>
+                          <input
+                            type="text"
+                            value={customerData.jod || ""}
+                            onChange={(e) =>
+                              handleInputChange(customer._id, "jod", e.target.value)
+                            }
+                            placeholder="Jod"
+                            className="w-full px-3 py-2 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-slate-500 focus:border-slate-500 transition"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Game Rows */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-md font-bold text-gray-700">Game Rows</h4>
+                          <button
+                            onClick={() => addGameRow(customer._id, '')}
+                            className="flex items-center gap-1 bg-green-500 text-white px-3 py-1 rounded-lg hover:bg-green-600 transition text-sm"
+                          >
+                            <FaPlus size={12} /> Add Row
+                          </button>
+                        </div>
+
+                        {gameRows.length === 0 && (
+                          <p className="text-sm text-gray-500 italic text-center py-3">
+                            No game rows. Click "Add Row" to start.
+                          </p>
+                        )}
+
+                        {gameRows.map((row, rowIndex) => (
+                          <div
+                            key={rowIndex}
+                            className="bg-white border border-gray-300 rounded-lg p-3 relative"
+                          >
+                            <button
+                              onClick={() => removeGameRow(customer._id, rowIndex)}
+                              className="absolute top-2 right-2 text-red-500 hover:text-red-700 transition"
+                              title="Remove Row"
+                            >
+                              <FaMinus size={14} />
+                            </button>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                  ओ. (Type)
+                                </label>
+                                <input
+                                  type="text"
+                                  value={row.type || ""}
+                                  onChange={(e) =>
+                                    handleGameRowChange(customer._id, rowIndex, "type", e.target.value)
+                                  }
+                                  placeholder="आ./कु."
+                                  className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-slate-500"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                  रक्कम (Income)
+                                </label>
+                                <input
+                                  type="text"
+                                  value={row.income || ""}
+                                  onChange={(e) =>
+                                    handleGameRowChange(customer._id, rowIndex, "income", e.target.value)
+                                  }
+                                  placeholder="Income"
+                                  className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-slate-500"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                  ओ. (O)
+                                </label>
+                                <input
+                                  type="text"
+                                  value={row.o || ""}
+                                  onChange={(e) =>
+                                    handleGameRowChange(customer._id, rowIndex, "o", e.target.value)
+                                  }
+                                  placeholder="O"
+                                  className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-slate-500"
+                                />
+                                {row.multiplier !== undefined && (
+                                  <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                    <span>*</span>
+                                    <input
+                                      type="number"
+                                      value={row.multiplier || ''}
+                                      onChange={(e) =>
+                                        handleGameRowChange(customer._id, rowIndex, "multiplier", e.target.value)
+                                      }
+                                      className="w-10 text-center border border-gray-300 rounded px-1"
+                                    />
+                                    <span>= {((parseFloat(row.o) || 0) * (row.multiplier || 0)).toFixed(0)}</span>
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                  जोड (Jod)
+                                </label>
+                                <input
+                                  type="text"
+                                  value={row.jod || ""}
+                                  onChange={(e) =>
+                                    handleGameRowChange(customer._id, rowIndex, "jod", e.target.value)
+                                  }
+                                  placeholder="Jod"
+                                  className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-slate-500"
+                                />
+                                {row.multiplier !== undefined && (
+                                  <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                    <span>*</span>
+                                    <input
+                                      type="number"
+                                      value={(row.multiplier || 0) * 10}
+                                      onChange={(e) =>
+                                        handleGameRowChange(customer._id, rowIndex, "multiplier", (parseFloat(e.target.value) || 0) / 10)
+                                      }
+                                      className="w-10 text-center border border-gray-300 rounded px-1"
+                                    />
+                                    <span>= {((parseFloat(row.jod) || 0) * (row.multiplier || 0) * 10).toFixed(0)}</span>
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                  को. (Ko)
+                                </label>
+                                <input
+                                  type="text"
+                                  value={row.ko || ""}
+                                  onChange={(e) =>
+                                    handleGameRowChange(customer._id, rowIndex, "ko", e.target.value)
+                                  }
+                                  placeholder="Ko"
+                                  className="w-full px-2 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-slate-500"
+                                />
+                                {row.multiplier !== undefined && (
+                                  <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                    <span>*</span>
+                                    <input
+                                      type="number"
+                                      value={row.multiplier || ''}
+                                      onChange={(e) =>
+                                        handleGameRowChange(customer._id, rowIndex, "multiplier", e.target.value)
+                                      }
+                                      className="w-10 text-center border border-gray-300 rounded px-1"
+                                    />
+                                    <span>= {((parseFloat(row.ko) || 0) * (row.multiplier || 0)).toFixed(0)}</span>
+                                  </div>
+                                )}
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                  पान (Pan)
+                                </label>
+                                <div className="flex items-center gap-1">
+                                  <input
+                                    type="text"
+                                    value={row.pan?.val1 || ""}
+                                    onChange={(e) =>
+                                      handleGameRowChange(customer._id, rowIndex, "pan.val1", e.target.value)
+                                    }
+                                    placeholder="0"
+                                    className="w-10 px-1 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-slate-500 text-center"
+                                  />
+                                  <span className="text-xs">×</span>
+                                  <input
+                                    type="text"
+                                    value={row.pan?.val2 || ""}
+                                    onChange={(e) =>
+                                      handleGameRowChange(customer._id, rowIndex, "pan.val2", e.target.value)
+                                    }
+                                    placeholder="0"
+                                    className="w-10 px-1 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-slate-500 text-center"
+                                  />
+                                </div>
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                  गुण (Gun)
+                                </label>
+                                <div className="flex items-center gap-1">
+                                  <input
+                                    type="text"
+                                    value={row.gun?.val1 || ""}
+                                    onChange={(e) =>
+                                      handleGameRowChange(customer._id, rowIndex, "gun.val1", e.target.value)
+                                    }
+                                    placeholder="0"
+                                    className="w-10 px-1 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-slate-500 text-center"
+                                  />
+                                  <span className="text-xs">×</span>
+                                  <input
+                                    type="text"
+                                    value={row.gun?.val2 || ""}
+                                    onChange={(e) =>
+                                      handleGameRowChange(customer._id, rowIndex, "gun.val2", e.target.value)
+                                    }
+                                    placeholder="0"
+                                    className="w-10 px-1 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-slate-500 text-center"
+                                  />
+                                </div>
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">
+                                  जॅकपॉट (Special)
+                                </label>
+                                <div className="flex items-center gap-1">
+                                  <input
+                                    type="text"
+                                    value={row.special?.val1 || ""}
+                                    onChange={(e) =>
+                                      handleGameRowChange(customer._id, rowIndex, "special.val1", e.target.value)
+                                    }
+                                    placeholder="0"
+                                    className="w-10 px-1 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-slate-500 text-center"
+                                  />
+                                  <span className="text-xs">×</span>
+                                  <input
+                                    type="text"
+                                    value={row.special?.val2 || ""}
+                                    onChange={(e) =>
+                                      handleGameRowChange(customer._id, rowIndex, "special.val2", e.target.value)
+                                    }
+                                    placeholder="0"
+                                    className="w-10 px-1 py-1 border border-gray-300 rounded text-sm focus:ring-1 focus:ring-slate-500 text-center"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Financial Summary (Collapsible) */}
+                      <div className="mt-4 pt-4 border-t border-gray-300">
+                        <button
+                          onClick={() => toggleFinancialSummary(customer._id)}
+                          className="w-full flex items-center justify-between text-left font-bold text-gray-700 mb-3 hover:text-slate-600 transition-colors"
+                        >
+                          <span className="text-md">Financial Summary</span>
+                          {expandedFinancials[customer._id] ? (
+                            <FaChevronUp className="text-sm" />
+                          ) : (
+                            <FaChevronDown className="text-sm" />
+                          )}
+                        </button>
+
+                        {expandedFinancials[customer._id] && (
+                          <>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {/* Left Box */}
+                              <div className="bg-white border border-gray-300 rounded-lg p-3 space-y-2 text-sm">
+                                <div className="flex justify-between items-center">
+                                  <span className="font-semibold">जमा:-</span>
+                                  <input
+                                    type="number"
+                                    value={customerData.jama || ''}
+                                    onChange={(e) =>
+                                      handleInputChange(customer._id, "jama", e.target.value)
+                                    }
+                                    placeholder="0"
+                                    className="w-24 text-right border border-gray-300 rounded px-2 py-1 text-sm"
+                                  />
+                                </div>
+                                <div className="flex justify-between">
+                                  <span className="font-semibold">टो:-</span>
+                                  <span className="font-bold">{totals.jamaTotal.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                  <span className="font-semibold">चूक (NA):-</span>
+                                  <input
+                                    type="number"
+                                    value={customerData.chuk || ''}
+                                    onChange={(e) =>
+                                      handleInputChange(customer._id, "chuk", e.target.value)
+                                    }
+                                    placeholder="Enter amount"
+                                    className="w-24 text-right border border-gray-300 rounded px-2 py-1 text-sm"
+                                  />
+                                </div>
+                                <div className="flex justify-between pt-2 border-t border-gray-200">
+                                  <span className="font-semibold">
+                                    अंतिम टोटल {totals.finalTotalAfterChuk < 0 ? '(देणे)' : '(येणे)'}:-
+                                  </span>
+                                  <span className="font-bold text-lg text-slate-600">
+                                    {Math.abs(totals.finalTotalAfterChuk).toFixed(2)}
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Right Box */}
+                              <div className="bg-white border border-gray-300 rounded-lg p-3 space-y-2 text-sm">
+                                <div className="flex justify-between items-center">
+                                  <span className="font-semibold">आड:-</span>
+                                  <input
+                                    type="number"
+                                    value={customerData.advanceAmount || ''}
+                                    onChange={(e) =>
+                                      handleInputChange(customer._id, "advanceAmount", e.target.value)
+                                    }
+                                    placeholder="0"
+                                    className="w-24 text-right border border-gray-300 rounded px-2 py-1 text-sm"
+                                  />
+                                </div>
+                                <div className="flex justify-between items-center">
+                                  <span className="font-semibold">कटिंग:-</span>
+                                  <input
+                                    type="number"
+                                    value={customerData.cuttingAmount || ''}
+                                    onChange={(e) =>
+                                      handleInputChange(customer._id, "cuttingAmount", e.target.value)
+                                    }
+                                    placeholder="0"
+                                    className="w-24 text-right border border-gray-300 rounded px-2 py-1 text-sm"
+                                  />
+                                </div>
+                                <div className="flex justify-between pt-2 border-t border-gray-200">
+                                  <span className="font-semibold">टो:-</span>
+                                  <span className="font-bold text-lg text-green-600">
+                                    {totals.finalTotal.toFixed(2)}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Status Indicator */}
+                      {(customerData.open || customerData.close || gameRows.length > 0) && (
+                        <div className="mt-3 flex items-center gap-2 text-xs text-green-600 font-medium">
+                          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                          Data entered - Ready to save receipt
+                        </div>
+                      )}
+
+                      {/* Save Button - Bottom */}
+                      <div className="mt-4 pt-4 border-t border-gray-200">
+                        <button
+                          onClick={() => handleSaveCustomer(customer._id)}
+                          disabled={savingCustomers[customer._id]}
+                          className="w-full bg-slate-600 text-white px-4 py-3 rounded-lg font-semibold hover:bg-slate-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
+                        >
+                          <FaSave />
+                          {savingCustomers[customer._id] ? 'Saving Receipt...' : 'Save Receipt'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+
+          {customers.filter((customer) => {
+            if (!searchQuery.trim()) return true;
+            const query = searchQuery.toLowerCase().trim();
+            const customerName = customer.name?.toLowerCase() || "";
+            const srNo = customer.srNo?.toString() || "";
+            return customerName.includes(query) || srNo.includes(query);
+          }).length === 0 && (
+              <div className="text-center py-12 text-gray-500">
+                <FaUsers className="text-6xl mx-auto mb-4 text-gray-300" />
+                {searchQuery ? (
+                  <>
+                    <p className="text-lg font-medium">No customers found matching "{searchQuery}"</p>
+                    <p className="text-sm">Try a different search term</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-lg font-medium">No customers found</p>
+                    <p className="text-sm">Add customers to start using shortcuts</p>
+                  </>
+                )}
+              </div>
+            )}
         </div>
 
         {/* Info Box */}
@@ -1161,8 +1366,8 @@ const ShortcutTab = ({ businessName }) => {
             <div>
               <h3 className="font-bold text-slate-900 mb-1">Quick Tip</h3>
               <p className="text-sm text-slate-800">
-                Enter ओ (Open) and क्लो (Close) values for customers, then click "Create Receipts" 
-                to generate receipts for all selected customers at once. This saves time when creating 
+                Enter ओ (Open) and क्लो (Close) values for customers, then click "Create Receipts"
+                to generate receipts for all selected customers at once. This saves time when creating
                 multiple receipts with the same open/close values.
               </p>
             </div>

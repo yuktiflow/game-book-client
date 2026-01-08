@@ -168,7 +168,7 @@ const CustomerTable = ({
     const yene = finalTotal > 0 ? finalTotal : 0;
     const dene = finalTotal < 0 ? Math.abs(finalTotal) : 0;
     const advance = customer.advanceAmount || 0;
-    
+
     setEditingRow(customer._id);
     setEditValues({ yene, dene, advance });
   };
@@ -193,7 +193,7 @@ const CustomerTable = ({
 
   const handleInputChange = (field, value) => {
     const numValue = parseFloat(value) || 0;
-    
+
     // If changing yene or dene, clear the other one (they're mutually exclusive)
     if (field === 'yene' && numValue > 0) {
       setEditValues(prev => ({ ...prev, yene: numValue, dene: 0 }));
@@ -309,20 +309,20 @@ const CustomerGridCard = ({
   return (
     <div className="group bg-white border-2 border-gray-200 rounded-2xl p-6 hover:shadow-2xl transition-all duration-300 hover:border-slate-400 hover:-translate-y-1 relative overflow-hidden">
       <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-slate-50 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-      
+
       <div className="flex items-center justify-between mb-5 relative z-10">
         <div className="bg-gradient-to-br from-slate-600 to-slate-700 text-white font-bold px-4 py-2 rounded-xl text-sm shadow-lg">
           #{pageStartIndex + index + 1}
         </div>
-         
-          <button
-            onClick={() => handleEditClick(customer)}
-            className="text-blue-600 hover:text-blue-800 transition-all p-2 hover:bg-blue-100 rounded-lg"
-            title="Edit Balance"
-          >
-            <Edit className="w-5 h-5" />
-          </button>
-        
+
+        <button
+          onClick={() => handleEditClick(customer)}
+          className="text-blue-600 hover:text-blue-800 transition-all p-2 hover:bg-blue-100 rounded-lg"
+          title="Edit Balance"
+        >
+          <Edit className="w-5 h-5" />
+        </button>
+
       </div>
 
       <div className="mb-5 relative z-10">
@@ -332,7 +332,7 @@ const CustomerGridCard = ({
           </div>
           {customer.name}
         </h3>
-        
+
         <div className="space-y-3">
           {/* येणे (To Receive) */}
           {yene > 0 && (
@@ -406,7 +406,7 @@ const CustomerTableView = ({
     const yene = finalTotal > 0 ? finalTotal : 0;
     const dene = finalTotal < 0 ? Math.abs(finalTotal) : 0;
     const advance = customer.advanceAmount || 0;
-    
+
     setEditingRow(customer._id);
     setEditValues({ yene, dene, advance });
   };
@@ -431,7 +431,7 @@ const CustomerTableView = ({
 
   const handleInputChange = (field, value) => {
     const numValue = parseFloat(value) || 0;
-    
+
     // If changing yene or dene, clear the other one (they're mutually exclusive)
     if (field === 'yene' && numValue > 0) {
       setEditValues(prev => ({ ...prev, yene: numValue, dene: 0 }));
@@ -441,7 +441,7 @@ const CustomerTableView = ({
       setEditValues(prev => ({ ...prev, [field]: numValue }));
     }
   };
-  
+
   if (loading) {
     return (
       <div className="overflow-x-auto border rounded-lg shadow">
@@ -602,16 +602,16 @@ const CustomerTableView = ({
                     </div>
                   ) : (
                     <div className="flex gap-1 justify-center">
-                      
-                        <button
-                          onClick={() => handleEditClick(c)}
-                          className="text-blue-600 hover:text-blue-900 transition-colors"
-                          title="Edit Balance"
-                        >
-                          <Edit className="w-4 h-4 sm:w-5 sm:h-5" />
-                        </button>
-                       
-                       
+
+                      <button
+                        onClick={() => handleEditClick(c)}
+                        className="text-blue-600 hover:text-blue-900 transition-colors"
+                        title="Edit Balance"
+                      >
+                        <Edit className="w-4 h-4 sm:w-5 sm:h-5" />
+                      </button>
+
+
                     </div>
                   )}
                 </td>
@@ -673,7 +673,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => {
 const TabNavigation = ({ activeTab, setActiveTab }) => {
   const tabs = [
     { id: "overview", label: "Overview", icon: <BarChart3 className="w-4 h-4" /> },
-    { id: "analytics", label: "Analytics", icon: <TrendingUp className="w-4 h-4" /> },
+    { id: "daily-summary", label: "Daily Summary", icon: <Activity className="w-4 h-4" /> },
     { id: "payments", label: "Payments", icon: <DollarSign className="w-4 h-4" /> },
     { id: "customers", label: "Customer Insights", icon: <Users className="w-4 h-4" /> },
   ];
@@ -685,11 +685,10 @@ const TabNavigation = ({ activeTab, setActiveTab }) => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${
-              activeTab === tab.id
-                ? "border-slate-700 text-slate-700"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            }`}
+            className={`flex items-center gap-2 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 transition-colors ${activeTab === tab.id
+              ? "border-slate-700 text-slate-700"
+              : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
           >
             {tab.icon}
             <span className="hidden sm:inline">{tab.label}</span>
@@ -711,7 +710,7 @@ const GridView = ({ customers, pageStartIndex, userRole, onBalanceUpdate, curren
     const yene = finalTotal > 0 ? finalTotal : 0;
     const dene = finalTotal < 0 ? Math.abs(finalTotal) : 0;
     const advance = customer.advanceAmount || 0;
-    
+
     setEditingRow(customer._id);
     setEditValues({ yene, dene, advance });
   };
@@ -736,7 +735,7 @@ const GridView = ({ customers, pageStartIndex, userRole, onBalanceUpdate, curren
 
   const handleInputChange = (field, value) => {
     const numValue = parseFloat(value) || 0;
-    
+
     if (field === 'yene' && numValue > 0) {
       setEditValues(prev => ({ ...prev, yene: numValue, dene: 0 }));
     } else if (field === 'dene' && numValue > 0) {
@@ -810,6 +809,14 @@ export default function ReportPage() {
   const [gameTypeIncome, setGameTypeIncome] = useState([]);
   const [paymentStats, setPaymentStats] = useState(null);
   const [chartsLoading, setChartsLoading] = useState(true);
+
+  // Daily Summary states
+  const [dailyTotals, setDailyTotals] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const today = new Date();
+    return today.toISOString().split('T')[0]; // YYYY-MM-DD format
+  });
+  const [dailyTotalsLoading, setDailyTotalsLoading] = useState(false);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -919,6 +926,36 @@ export default function ReportPage() {
     }
   };
 
+  const fetchDailyTotals = useCallback(async (date) => {
+    if (!token) return;
+
+    setDailyTotalsLoading(true);
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: { date },
+      };
+
+      const res = await axios.get(`${API_BASE_URI}/api/receipts/daily-totals`, config);
+      setDailyTotals(res.data);
+    } catch (err) {
+      console.error("Failed to fetch daily totals:", err);
+      toast.error("Failed to load daily totals");
+    } finally {
+      setDailyTotalsLoading(false);
+    }
+  }, [token]);
+
+  // Fetch daily totals when date changes
+  useEffect(() => {
+    if (activeTab === 'daily-summary' || activeTab === 'overview') {
+      fetchDailyTotals(selectedDate);
+    }
+  }, [selectedDate, activeTab, fetchDailyTotals]);
+
+
   // --- UPDATED: This useMemo now calculates and returns totalAdvance ---
   const { netBalance, totalYene, totalDene, totalAdvance } = useMemo(() => {
     let yene = 0;
@@ -932,7 +969,7 @@ export default function ReportPage() {
       } else if (balance < 0) {
         dene += Math.abs(balance);
       }
-      
+
       // --- NEW: Calculate total advance from API data ---
       if (c.advanceAmount && c.advanceAmount > 0) {
         advance += c.advanceAmount;
@@ -1048,7 +1085,7 @@ export default function ReportPage() {
       );
 
       toast.success("Balance updated successfully!");
-      
+
       // Refresh the data after update
       await fetchData();
     } catch (err) {
@@ -1110,55 +1147,123 @@ export default function ReportPage() {
             {activeTab === "overview" && (
               <div className="space-y-6">
                 <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold text-gray-800">Overview</h2>
+                </div>
+
+                {/* --- DAILY SUMMARY CARD (Dashboard) --- */}
+                <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg p-6 text-white mb-6 print-hidden">
+                  {dailyTotalsLoading ? (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                        <p className="opacity-90">Loading daily summary...</p>
+                      </div>
+                      <input
+                        type="date"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                        className="px-3 py-1 text-slate-800 text-sm rounded-lg focus:outline-none cursor-pointer"
+                      />
+                    </div>
+                  ) : dailyTotals ? (
+                    <>
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                        <div>
+                          <div className="flex items-center gap-3 mb-1">
+                            <h3 className="text-lg font-semibold opacity-90">
+                              {new Date(selectedDate).toDateString() === new Date().toDateString() ? "Today Summary" : "Daily Summary"}
+                            </h3>
+                            <span className="text-xs bg-white/20 px-2 py-0.5 rounded">
+                              {new Date(selectedDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
+                            </span>
+                          </div>
+                          <p className="text-xs opacity-75">Combined total (Income + Payment)</p>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                          {/* Grand Total Counts */}
+                          <div className="flex gap-4 text-right sm:text-center mr-2">
+                            <div>
+                              <p className="text-[10px] opacity-75 uppercase tracking-wide">Receipts</p>
+                              <p className="font-bold text-sm">{dailyTotals.grandTotals.totalReceipts}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] opacity-75 uppercase tracking-wide">Customers</p>
+                              <p className="font-bold text-sm">{dailyTotals.grandTotals.totalCustomers}</p>
+                            </div>
+                          </div>
+
+                          <div className="bg-white/20 px-4 py-2 rounded-lg text-center min-w-[120px]">
+                            <p className="text-xs opacity-75 mb-0.5">Grand Total</p>
+                            <p className="text-xl font-bold">
+                              ₹{(dailyTotals.grandTotals.totalIncome + dailyTotals.grandTotals.totalPayment).toFixed(2)}
+                            </p>
+                          </div>
+                          <input
+                            type="date"
+                            value={selectedDate}
+                            onChange={(e) => setSelectedDate(e.target.value)}
+                            className="px-3 py-2 text-slate-800 text-sm rounded-lg focus:outline-none cursor-pointer shadow-sm"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Company Breakdown (Merged) */}
+                      {Object.keys(dailyTotals.totalsByCompany).length > 0 ? (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {Object.entries(dailyTotals.totalsByCompany).map(([company, data]) => (
+                            <div key={company} className="bg-white/10 rounded-lg p-4 backdrop-blur-sm border border-white/10 hover:bg-white/15 transition-colors">
+                              <div className="flex justify-between items-start mb-2">
+                                <p className="font-bold text-base truncate pr-2" title={company}>{company}</p>
+                                <span className="font-bold text-lg bg-white/20 px-2 py-0.5 rounded text-sm">
+                                  ₹{(data.totalIncome + data.totalPayment).toFixed(0)}
+                                </span>
+                              </div>
+                              <div className="flex gap-3 text-xs opacity-80 mb-3 pb-2 border-b border-white/10">
+                                <span>Receipts: <b>{data.receiptsCount}</b></span>
+                                <span>Customers: <b>{data.customerCount}</b></span>
+                              </div>
+
+                              {/* Game Analysis */}
+                              {data.gameTypeBreakdown && Object.keys(data.gameTypeBreakdown).length > 0 && (
+                                <div className="space-y-1.5 mt-3 pt-3">
+                                  {Object.entries(data.gameTypeBreakdown).map(([type, stats]) => (
+                                    <div key={type} className="flex justify-between items-center text-xs">
+                                      <span className="opacity-80 font-medium">{type} <span className="opacity-50">({stats.count})</span></span>
+                                      <span className="font-semibold" title="Total (Income + Payment)">
+                                        ₹{(stats.income + stats.payment).toFixed(0)}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-center py-4 bg-white/5 rounded-lg">
+                          <p className="opacity-75 text-sm">No records found for this date.</p>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-center py-6">
+                      <p className="opacity-75">Select a date to view summary</p>
+                      <input
+                        type="date"
+                        value={selectedDate}
+                        onChange={(e) => setSelectedDate(e.target.value)}
+                        className="mt-2 px-3 py-1 text-slate-800 text-sm rounded"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold text-gray-800">Customer Balance Overview</h2>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 print-hidden">
-                  <SummaryCard
-                    title="This Week's Income"
-                    value={summary.weekly.income}
-                    icon={<CalendarRange />}
-                    color="purple"
-                    loading={summaryLoading}
-                  />
-                  <SummaryCard
-                    title="This Month's Income"
-                    value={summary.monthly.income}
-                    icon={<Calendar />}
-                    color="blue"
-                    loading={summaryLoading}
-                  />
-                  <SummaryCard
-                    title="This Year's Income"
-                    value={summary.yearly.income}
-                    icon={<LineChart />}
-                    color="green"
-                    loading={summaryLoading}
-                  />
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 print-hidden">
-                  <ProfitLossCard
-                    title="Weekly Profit/Loss"
-                    value={summary.weekly.profit}
-                    loading={summaryLoading}
-                  />
-                  <ProfitLossCard
-                    title="Monthly Profit/Loss"
-                    value={summary.monthly.profit}
-                    loading={summaryLoading}
-                  />
-                  <ProfitLossCard
-                    title="Yearly Profit/Loss"
-                    value={summary.yearly.profit}
-                    loading={summaryLoading}
-                  />
-                  <ProfitLossCard
-                    title="Net Customer Balance"
-                    value={netBalance}
-                    loading={loading}
-                  />
-                </div>
 
                 <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm print-hidden">
                   <div className="flex flex-col gap-4 mb-6">
@@ -1176,21 +1281,19 @@ export default function ReportPage() {
                       <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1 border border-gray-300">
                         <button
                           onClick={() => setViewMode('list')}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-md font-semibold transition-all text-sm ${
-                            viewMode === 'list'
-                              ? 'bg-slate-700 text-white shadow-md'
-                              : 'text-gray-600 hover:bg-gray-200'
-                          }`}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-md font-semibold transition-all text-sm ${viewMode === 'list'
+                            ? 'bg-slate-700 text-white shadow-md'
+                            : 'text-gray-600 hover:bg-gray-200'
+                            }`}
                         >
                           <ListIcon className="w-4 h-4" /> List
                         </button>
                         <button
                           onClick={() => setViewMode('grid')}
-                          className={`flex items-center gap-2 px-4 py-2 rounded-md font-semibold transition-all text-sm ${
-                            viewMode === 'grid'
-                              ? 'bg-slate-700 text-white shadow-md'
-                              : 'text-gray-600 hover:bg-gray-200'
-                          }`}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-md font-semibold transition-all text-sm ${viewMode === 'grid'
+                            ? 'bg-slate-700 text-white shadow-md'
+                            : 'text-gray-600 hover:bg-gray-200'
+                            }`}
                         >
                           <Grid3x3 className="w-4 h-4" /> Grid
                         </button>
@@ -1251,28 +1354,6 @@ export default function ReportPage() {
               </div>
             )}
 
-            {/* Analytics Tab */}
-            {activeTab === "analytics" && (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-semibold text-gray-800">Business Analytics</h2>
-                </div>
-                
-                {chartsLoading ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader2 className="w-8 h-8 animate-spin text-slate-600" />
-                    <p className="ml-3 text-gray-600">Loading analytics...</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <MonthlyTrendsChart data={monthlyTrends} />
-                    <IncomeByGameTypeChart data={gameTypeIncome} />
-                    <PaymentStatsChart data={paymentStats} />
-                  </div>
-                )}
-              </div>
-            )}
-
             {/* Payments Tab */}
             {activeTab === "payments" && (
               <div className="space-y-6">
@@ -1298,7 +1379,7 @@ export default function ReportPage() {
                           Amount customers owe you
                         </p>
                       </div>
-                      
+
                       <div className="bg-gradient-to-br from-red-50 to-red-100 p-8 rounded-xl border-2 border-red-300 shadow-lg">
                         <div className="flex items-center justify-between mb-3">
                           <p className="text-lg text-red-700 font-semibold">देणे (To Give)</p>
@@ -1312,22 +1393,14 @@ export default function ReportPage() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-                        <p className="text-sm text-slate-600 font-medium mb-2">Net Balance</p>
-                        <p className={`text-3xl font-bold ${netBalance >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-                          {formatCurrency(Math.abs(netBalance))}
-                        </p>
-                        <p className="text-xs text-slate-500 mt-1">
-                          {netBalance >= 0 ? 'In your favor' : 'In customers favor'}
-                        </p>
-                      </div>
-                      
+
+
                       <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                         <p className="text-sm text-slate-600 font-medium mb-2">Total Advance (आड)</p>
                         <p className="text-3xl font-bold text-blue-700">{formatCurrency(totalAdvance)}</p>
                         <p className="text-xs text-slate-500 mt-1">Advance from customers</p>
                       </div>
-                      
+
                       <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                         <p className="text-sm text-slate-600 font-medium mb-2">Total Customers</p>
                         <p className="text-3xl font-bold text-slate-700">{allCustomers.length}</p>
@@ -1396,6 +1469,121 @@ export default function ReportPage() {
                     </div>
                   </>
                 )}
+              </div>
+            )}
+
+            {/* Daily Summary Tab */}
+            {activeTab === "daily-summary" && (
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <h2 className="text-xl font-semibold text-gray-800">Daily Summary</h2>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-5 h-5 text-gray-600" />
+                    <input
+                      type="date"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                      className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Daily Summary Card */}
+                <div className="bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg p-6 text-white">
+                  {dailyTotalsLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <div className="text-center">
+                        <Loader2 className="w-12 h-12 animate-spin mx-auto mb-3" />
+                        <p className="text-sm opacity-75">Loading daily totals...</p>
+                      </div>
+                    </div>
+                  ) : dailyTotals ? (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-sm font-medium opacity-90 mb-1">Total Overview for {new Date(selectedDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</h3>
+                          <p className="text-3xl font-bold">
+                            ₹{dailyTotals.grandTotals.totalIncome.toFixed(2)}
+                          </p>
+                          <p className="text-xs opacity-75 mt-1">Total income from saved receipts</p>
+                        </div>
+                        <div className="bg-white/20 p-4 rounded-lg">
+                          <Activity className="w-10 h-10" />
+                        </div>
+                      </div>
+
+                      {/* Grand Totals Stats */}
+                      <div className="grid grid-cols-3 gap-4 mt-4 pt-4 border-t border-white/20">
+                        <div>
+                          <p className="text-xs opacity-75">Total Receipts</p>
+                          <p className="text-xl font-bold">{dailyTotals.grandTotals.totalReceipts}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs opacity-75">Unique Customers</p>
+                          <p className="text-xl font-bold">{dailyTotals.grandTotals.totalCustomers}</p>
+                        </div>
+                        <div>
+                          <p className="text-xs opacity-75">Total Payment</p>
+                          <p className="text-xl font-bold">
+                            ₹{dailyTotals.grandTotals.totalPayment.toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Company Breakdown */}
+                      {Object.keys(dailyTotals.totalsByCompany).length > 0 && (
+                        <div className="mt-4 pt-4 border-t border-white/20">
+                          <h4 className="text-sm font-semibold mb-3 opacity-90">Breakdown by Company</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            {Object.entries(dailyTotals.totalsByCompany).map(([company, data]) => (
+                              <div key={company} className="bg-white/10 rounded-lg p-3 backdrop-blur-sm">
+                                <p className="text-sm font-semibold mb-2 truncate" title={company}>
+                                  {company}
+                                </p>
+                                <div className="space-y-1 text-xs">
+                                  {/* Merged Totals */}
+                                  <div className="flex justify-between items-center text-base mb-2">
+                                    <span className="opacity-90">Total:</span>
+                                    <span className="font-bold">₹{(data.totalIncome + data.totalPayment).toFixed(2)}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="opacity-75">Receipts:</span>
+                                    <span className="font-semibold">{data.receiptsCount}</span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="opacity-75">Customers:</span>
+                                    <span className="font-semibold">{data.customerCount}</span>
+                                  </div>
+
+                                  {/* Game Type Breakdown */}
+                                  {data.gameTypeBreakdown && Object.keys(data.gameTypeBreakdown).length > 0 && (
+                                    <div className="mt-2 pt-2 border-t border-white/20">
+                                      <p className="text-[10px] font-semibold opacity-75 mb-1 uppercasetracking-wider">Game Types</p>
+                                      <div className="space-y-1">
+                                        {Object.entries(data.gameTypeBreakdown).map(([type, stats]) => (
+                                          <div key={type} className="flex justify-between items-center text-[10px]">
+                                            <span className="opacity-90">{type} <span className="opacity-60">({stats.count})</span></span>
+                                            <div className="flex gap-2">
+                                              <span className="text-white font-bold" title="Total">₹{(stats.income + stats.payment).toFixed(0)}</span>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-center py-8">
+                      <p className="text-sm opacity-75">No data available for this date</p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 

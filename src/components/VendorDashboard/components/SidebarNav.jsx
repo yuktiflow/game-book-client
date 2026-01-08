@@ -12,6 +12,8 @@ import {
   FaBuilding,
   FaBolt,
 } from "react-icons/fa";
+import { useLanguage } from "../../../contexts/LanguageContext";
+import LanguageToggle from "../../LanguageToggle";
 
 const SidebarNav = ({
   collapsed,
@@ -23,21 +25,23 @@ const SidebarNav = ({
   onMenuClick,
   onLogout,
 }) => {
+  const { t } = useLanguage();
+
   const menu = [
-    { key: "dashboard", label: "Dashboard", icon: <FaTachometerAlt /> },
-    { key: "profile", label: "Profile", icon: <FaUserCircle /> },
-    { key: "createReceipt", label: "Create Receipt", icon: <FaFileInvoiceDollar /> },
-    { key: "viewReceipts", label: "View Receipts", icon: <FaClipboardList /> },
-    { key: "customers", label: "Customers", icon: <FaUser /> },
-    { key: "shortcuts", label: "Shortcuts", icon: <FaBolt /> },
-    { key: "reports", label: "Reports", icon: <FaCoins /> },
+    { key: "dashboard", label: t('navigation.dashboard'), icon: <FaTachometerAlt /> },
+    { key: "profile", label: t('navigation.profile'), icon: <FaUserCircle /> },
+    { key: "createReceipt", label: t('navigation.createReceipt'), icon: <FaFileInvoiceDollar /> },
+    { key: "viewReceipts", label: t('navigation.viewReceipts'), icon: <FaClipboardList /> },
+    { key: "customers", label: t('navigation.customers'), icon: <FaUser /> },
+    { key: "shortcuts", label: t('navigation.shortcuts'), icon: <FaBolt /> },
+    { key: "reports", label: t('navigation.reports'), icon: <FaCoins /> },
   ];
 
   return (
     <>
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
           onClick={onToggleMobileMenu}
         ></div>
@@ -89,11 +93,10 @@ const SidebarNav = ({
             <button
               key={item.key}
               onClick={() => onMenuClick(item.key)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${
-                currentSection === item.key
+              className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all ${currentSection === item.key
                   ? "bg-slate-600 text-white shadow-lg scale-105"
                   : "hover:bg-gray-100 text-gray-700 hover:scale-102"
-              } ${collapsed ? "justify-center" : ""}`}
+                } ${collapsed ? "justify-center" : ""}`}
             >
               <span className="text-lg">{item.icon}</span>
               <span className={`text-sm ${collapsed ? "md:hidden" : ""}`}>{item.label}</span>
@@ -101,16 +104,22 @@ const SidebarNav = ({
           ))}
         </nav>
 
-        {/* Logout Button */}
-        <div className="p-3 border-t border-gray-200 bg-gray-50">
+        {/* Logout Button and Language Toggle */}
+        <div className="p-3 border-t border-gray-200 bg-gray-50 space-y-2">
+          {/* Language Toggle */}
+          {!collapsed && (
+            <div className="mb-2">
+              <LanguageToggle />
+            </div>
+          )}
+
           <button
             onClick={onLogout}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-all ${
-              collapsed ? "justify-center" : ""
-            }`}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-red-600 hover:bg-red-50 hover:text-red-700 transition-all ${collapsed ? "justify-center" : ""
+              }`}
           >
             <FaSignOutAlt className="text-lg" />
-            <span className={`text-sm ${collapsed ? "md:hidden" : ""}`}>Logout</span>
+            <span className={`text-sm ${collapsed ? "md:hidden" : ""}`}>{t('navigation.logout')}</span>
           </button>
         </div>
       </div>

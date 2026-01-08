@@ -7,45 +7,48 @@ import {
   FaCoins,
   FaUserCircle,
 } from "react-icons/fa";
+import { useLanguage } from "../../../contexts/LanguageContext";
 
 const QuickActions = ({ onMenuClick }) => {
+  const { t } = useLanguage();
+
   const actions = [
     {
       key: "createReceipt",
-      title: "Create Receipt",
-      description: "Generate new invoice",
+      title: t('navigation.createReceipt'),
+      description: t('dashboard.quickActions.createReceiptDesc'),
       icon: <FaFileInvoiceDollar className="text-3xl text-slate-600" />,
       bgColor: "bg-slate-50",
       hoverColor: "hover:border-slate-600 hover:shadow-slate-100"
     },
     {
       key: "viewReceipts",
-      title: "View Receipts",
-      description: "Browse all receipts",
+      title: t('navigation.viewReceipts'),
+      description: t('dashboard.quickActions.viewReceiptsDesc'),
       icon: <FaClipboardList className="text-3xl text-slate-600" />,
       bgColor: "bg-slate-50",
       hoverColor: "hover:border-slate-600 hover:shadow-slate-100"
     },
     {
       key: "customers",
-      title: "Customers",
-      description: "Manage customers",
+      title: t('navigation.customers'),
+      description: t('dashboard.quickActions.customersDesc'),
       icon: <FaUser className="text-3xl text-green-600" />,
       bgColor: "bg-green-50",
       hoverColor: "hover:border-green-600 hover:shadow-green-100"
     },
     {
       key: "reports",
-      title: "Reports",
-      description: "View analytics",
+      title: t('navigation.reports'),
+      description: t('dashboard.quickActions.reportsDesc'),
       icon: <FaCoins className="text-3xl text-purple-600" />,
       bgColor: "bg-purple-50",
       hoverColor: "hover:border-purple-600 hover:shadow-purple-100"
     },
     {
       key: "profile",
-      title: "My Profile",
-      description: "Update information",
+      title: t('navigation.profile'),
+      description: t('dashboard.quickActions.profileDesc'),
       icon: <FaUserCircle className="text-3xl text-orange-600" />,
       bgColor: "bg-orange-50",
       hoverColor: "hover:border-orange-600 hover:shadow-orange-100"
@@ -58,7 +61,7 @@ const QuickActions = ({ onMenuClick }) => {
         <div className="w-10 h-10 bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl flex items-center justify-center shadow-md">
           <FaTachometerAlt className="text-white text-lg" />
         </div>
-        Quick Actions
+        {t('dashboard.quickActions.title')}
       </h3>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {actions.map((action) => (

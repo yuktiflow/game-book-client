@@ -1,0 +1,262 @@
+{
+  "app": {
+    "name": "Game Book",
+    "tagline": "Smart business management at your fingertips"
+  },
+  "auth": {
+    "welcomeBack": "Welcome Back",
+    "signInMessage": "Sign in to access your dashboard",
+    "usernameOrMobile": "Username or Mobile Number",
+    "usernamePlaceholder": "Enter your username or mobile",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "signIn": "Sign In",
+    "loginSuccess": "Login successful!",
+    "loginError": "Login failed. Please check your credentials.",
+    "enterUsername": "Please enter username or mobile number",
+    "enterPassword": "Please enter password",
+    "securityMessage": "Protected by end-to-end encryption",
+    "features": {
+      "receiptManagement": "Easy receipt management",
+      "analytics": "Real-time analytics",
+      "secure": "Secure and reliable"
+    }
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "receipts": "Receipts",
+    "createReceipt": "Create Receipt",
+    "viewReceipts": "View Receipts",
+    "customers": "Customers",
+    "shortcuts": "Shortcuts",
+    "reports": "Reports",
+    "profile": "Profile",
+    "logout": "Logout"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "overview": "Overview",
+    "welcome": "Welcome back",
+    "todaySummary": "Today Summary",
+    "dailySummary": "Daily Summary",
+    "loadingSummary": "Loading summary...",
+    "combinedTotal": "Combined total (Income + Payment)",
+    "noRecords": "No records found for this date.",
+    "selectDate": "Select a date to view summary",
+    "totalReceipts": "Total Receipts",
+    "totalCustomers": "Total Customers",
+    "totalIncome": "Total Income",
+    "totalPayment": "Total Payment",
+    "totalDue": "Total Due",
+    "recentActivity": "Recent Activity",
+    "quickActions": {
+      "title": "Quick Actions",
+      "createReceiptDesc": "Generate new invoice",
+      "viewReceiptsDesc": "Browse all receipts",
+      "customersDesc": "Manage customers",
+      "reportsDesc": "View analytics",
+      "profileDesc": "Update information"
+    },
+    "viewAll": "View All",
+    "noData": "No data available"
+  },
+  "receipts": {
+    "title": "View Receipts",
+    "description": "Manage and view all your receipts",
+    "createNew": "Create New Receipt",
+    "searchPlaceholder": "Search by name, business or Sr.No...",
+    "filters": {
+      "allTime": "All Time",
+      "today": "Today",
+      "last7Days": "Last 7 Days",
+      "thisMonth": "This Month"
+    },
+    "viewMode": {
+      "list": "List",
+      "grid": "Grid"
+    },
+    "table": {
+      "srNo": "Sr.No",
+      "customerName": "Customer Name",
+      "date": "Date",
+      "day": "Day",
+      "payment": "Payment",
+      "finalTotal": "Final Total",
+      "actions": "Actions",
+      "businessName": "Business Name",
+      "companyName": "Company Name"
+    },
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "print": "Print",
+      "view": "View",
+      "export": "Export"
+    },
+    "messages": {
+      "deleteConfirm": "Are you sure you want to delete the receipt for",
+      "deleteSuccess": "Receipt deleted successfully!",
+      "deleteFailed": "Failed to delete receipt.",
+      "exportSuccess": "Receipts exported successfully!",
+      "noReceipts": "No receipts found",
+      "loading": "Loading Receipts..."
+    },
+    "form": {
+      "title": "Receipt Form",
+      "editTitle": "Edit Receipt",
+      "createTitle": "Create New Receipt",
+      "selectCustomer": "Select Customer",
+      "selectCompany": "Select Company",
+      "selectDate": "Select Date",
+      "selectDay": "Select Day",
+      "save": "Save",
+      "cancel": "Cancel",
+      "saveAndPrint": "Save & Print",
+      "validation": {
+        "selectCustomer": "Please select a customer",
+        "selectCompany": "Please select a company",
+        "selectDate": "Please select a date"
+      },
+      "success": "Receipt saved successfully!",
+      "error": "Failed to save receipt"
+    },
+    "receipt": {
+      "open": "ओपन",
+      "close": "को.",
+      "jod": "जोड",
+      "pan": "पान",
+      "gun": "गुण",
+      "jackpot": "जॅकपॉट",
+      "berij": "बेरीज",
+      "frak": "फरक",
+      "amount": "रक्कम",
+      "total": "टो.",
+      "deduction": "क.",
+      "payment": "पें.",
+      "pending": "मा.",
+      "jama": "जमा",
+      "chuk": "चूक",
+      "finalTotal": "अंतिम टोटल",
+      "advance": "आड",
+      "cutting": "कटिंग",
+      "receivable": "येणे",
+      "payable": "देणे",
+      "var": "वार",
+      "date": "दि"
+    }
+  },
+  "customers": {
+    "title": "Customers",
+    "description": "Manage your customer database",
+    "addCustomer": "Add Customer",
+    "searchPlaceholder": "Search by name, mobile or Sr.No...",
+    "table": {
+      "srNo": "Sr.No",
+      "name": "Name",
+      "mobile": "Mobile",
+      "address": "Address",
+      "actions": "Actions"
+    },
+    "form": {
+      "title": "Customer Details",
+      "name": "Customer Name",
+      "namePlaceholder": "Enter customer name",
+      "mobile": "Mobile Number",
+      "mobilePlaceholder": "Enter mobile number",
+      "address": "Address",
+      "addressPlaceholder": "Enter address",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "messages": {
+      "deleteConfirm": "Are you sure you want to delete this customer?",
+      "deleteSuccess": "Customer deleted successfully!",
+      "deleteFailed": "Failed to delete customer.",
+      "saveSuccess": "Customer saved successfully!",
+      "saveFailed": "Failed to save customer.",
+      "noCustomers": "No customers found",
+      "loading": "Loading Customers..."
+    }
+  },
+  "shortcuts": {
+    "title": "Shortcuts",
+    "description": "Quick receipt entry",
+    "selectCompany": "Select Company",
+    "save": "Save",
+    "success": "Shortcut saved successfully!",
+    "error": "Failed to save shortcut"
+  },
+  "reports": {
+    "title": "Reports",
+    "description": "View business analytics and reports",
+    "dateRange": "Date Range",
+    "from": "From",
+    "to": "To",
+    "generate": "Generate Report",
+    "export": "Export",
+    "charts": {
+      "income": "Income Trend",
+      "payment": "Payment Trend",
+      "customers": "Customer Activity"
+    },
+    "messages": {
+      "loading": "Loading Reports...",
+      "noData": "No data available for selected period",
+      "exportSuccess": "Report exported successfully!"
+    }
+  },
+  "profile": {
+    "title": "Profile",
+    "description": "Manage your account settings",
+    "businessName": "Business Name",
+    "username": "Username",
+    "mobile": "Mobile Number",
+    "email": "Email",
+    "save": "Save Changes",
+    "cancel": "Cancel",
+    "messages": {
+      "updateSuccess": "Profile updated successfully!",
+      "updateFailed": "Failed to update profile.",
+      "loading": "Loading Profile..."
+    }
+  },
+  "common": {
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "view": "View",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "print": "Print",
+    "close": "Close",
+    "confirm": "Confirm",
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Info",
+    "noResults": "No results found",
+    "selectOption": "Select an option",
+    "required": "This field is required"
+  },
+  "language": {
+    "english": "English",
+    "marathi": "मराठी",
+    "selectLanguage": "Select Language",
+    "changeLanguage": "Change Language"
+  },
+  "days": {
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday"
+  }
+}

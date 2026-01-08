@@ -4,6 +4,7 @@ import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
 import dayjs from "dayjs";
 import LoadingSpinner from "./components/LoadingSpinner";
+import { useLanguage } from "../../contexts/LanguageContext";
 import {
   FaEdit,
   FaTrashAlt,
@@ -32,9 +33,10 @@ import {
 const API_BASE_URI = import.meta.env.VITE_API_BASE_URL;
 
 const CustomerTab = () => {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const { customerId } = useParams();
-  
+
   // --- STATE MANAGEMENT ---
   const [customers, setCustomers] = useState([]);
   const [newCustomer, setNewCustomer] = useState({
@@ -67,7 +69,7 @@ const CustomerTab = () => {
   const fetchCustomers = useCallback(async () => {
     if (!token) {
       setLoading(false);
-      toast.error("Authentication error. Please log in again.");
+      toast.error(t('auth.loginError'));
       return;
     }
     try {
@@ -78,7 +80,7 @@ const CustomerTab = () => {
       const customerData = res.data?.customers || res.data || [];
       if (!Array.isArray(customerData)) {
         console.error("Fetched data is not an array:", customerData);
-        toast.error("Received an invalid format for customer data.");
+        toast.error(t('customers.messages.saveFailed'));
         setCustomers([]);
         return;
       }
@@ -86,7 +88,7 @@ const CustomerTab = () => {
       setCustomers(sortedCustomers);
     } catch (err) {
       console.error("Error fetching customers:", err);
-      toast.error(err.response?.data?.message || "Failed to fetch customers.");
+      toast.error(err.response?.data?.message || t('customers.messages.saveFailed'));
     } finally {
       setLoading(false);
     }
@@ -102,31 +104,31 @@ const CustomerTab = () => {
       // Check if we have a valid customer ID from useParams
       if (customerId && customers.length > 0) {
         const customer = customers.find(c => c._id === customerId);
-        
+
         if (customer) {
           setSelectedCustomer(customer);
           setShowDetailsModal(true);
           setLoadingStats(true);
-          
+
           // Fetch customer receipts and stats
           try {
             const receiptsRes = await axios.get(`${API_BASE_URI}/api/receipts`, {
               headers: { Authorization: `Bearer ${token}` },
             });
-            
+
             const customerReceipts = receiptsRes.data.receipts.filter(
               r => r.customerId === customer._id
             );
-            
+
             // Sort by date descending (newest first)
             customerReceipts.sort((a, b) => new Date(b.date) - new Date(a.date));
-            
+
             const totalReceipts = customerReceipts.length;
             const totalIncome = customerReceipts.reduce((sum, r) => sum + (r.totalIncome || 0), 0);
             const totalPayment = customerReceipts.reduce((sum, r) => sum + (r.payment || 0), 0);
             const totalDeduction = customerReceipts.reduce((sum, r) => sum + (r.deduction || 0), 0);
             const avgIncome = totalReceipts > 0 ? totalIncome / totalReceipts : 0;
-            
+
             setCustomerStats({
               totalReceipts,
               totalIncome,
@@ -139,13 +141,13 @@ const CustomerTab = () => {
             });
           } catch (error) {
             console.error('Error fetching customer stats:', error);
-            toast.error('Failed to load customer details');
+            toast.error(t('customers.messages.saveFailed'));
           } finally {
             setLoadingStats(false);
           }
         } else {
           // Customer not found, redirect back to customers list
-          toast.error('Customer not found');
+          toast.error(t('customers.messages.noCustomers'));
           navigate('/vendor/customers');
         }
       } else if (!customerId && showDetailsModal) {
@@ -168,7 +170,7 @@ const CustomerTab = () => {
   const handleAddCustomer = async (e) => {
     e.preventDefault();
     if (!newCustomer.name) {
-      toast.warn("Customer Name is required.");
+      toast.warn(t('common.required'));
       return;
     }
 
@@ -184,10 +186,10 @@ const CustomerTab = () => {
       setCustomers((prevCustomers) => [...prevCustomers, res.data.customer]);
       setNewCustomer({ name: "", address: "" });
       setShowAddForm(false);
-      toast.success("Customer added successfully!");
+      toast.success(t('customers.messages.saveSuccess'));
     } catch (err) {
       console.error("Error adding customer:", err);
-      toast.error(err.response?.data?.message || "Failed to add customer.");
+      toast.error(err.response?.data?.message || t('customers.messages.saveFailed'));
     } finally {
       setIsSubmitting(false);
     }
@@ -220,10 +222,10 @@ const CustomerTab = () => {
         )
       );
       setEditingCustomerId(null);
-      toast.success("Customer updated successfully!");
+      toast.success(t('customers.messages.saveSuccess'));
     } catch (err) {
       console.error("Error updating customer:", err);
-      toast.error(err.response?.data?.message || "Failed to update customer.");
+      toast.error(err.response?.data?.message || t('customers.messages.saveFailed'));
     }
   };
 
@@ -232,7 +234,7 @@ const CustomerTab = () => {
 
     if (
       window.confirm(
-        `Are you sure you want to delete ${customerToDelete.name}? This action cannot be undone.`
+        `${t('customers.messages.deleteConfirm')} ${customerToDelete.name}?`
       )
     ) {
       try {
@@ -243,10 +245,10 @@ const CustomerTab = () => {
         setCustomers((prev) =>
           prev.filter((c) => c._id !== customerToDelete._id)
         );
-        toast.success("Customer deleted successfully.");
+        toast.success(t('customers.messages.deleteSuccess'));
       } catch (err) {
         console.error("Error deleting customer:", err);
-        toast.error(err.response?.data?.message || "Failed to delete customer.");
+        toast.error(err.response?.data?.message || t('customers.messages.deleteFailed'));
       }
     }
   };
@@ -318,7 +320,7 @@ const CustomerTab = () => {
 
   // Export to CSV
   const exportToCSV = () => {
-    const headers = ['Sr.No', 'Name', 'Address', 'Latest Balance', 'Advance Amount'];
+    const headers = [t('customers.table.srNo'), t('customers.table.name'), t('customers.table.address'), 'Latest Balance', 'Advance Amount'];
     const rows = sortedCustomers.map(c => [
       c.displaySrNo,
       c.name,
@@ -326,12 +328,12 @@ const CustomerTab = () => {
       c.latestBalance || 0,
       c.advanceAmount || 0
     ]);
-    
+
     const csvContent = [
       headers.join(','),
       ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
     ].join('\n');
-    
+
     const blob = new Blob([csvContent], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -339,18 +341,18 @@ const CustomerTab = () => {
     a.download = `customers_${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
-    toast.success('Customer data exported successfully!');
+    toast.success(t('customers.messages.saveSuccess'));
   };
 
   // --- RENDER LOGIC ---
   if (loading) {
-    return <LoadingSpinner message="Loading Customers..." />;
+    return <LoadingSpinner message={t('customers.messages.loading')} />;
   }
 
   return (
     <div className="bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 min-h-screen">
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} theme="colored" />
-      
+
       <div className="max-w-[1600px] mx-auto p-6 lg:p-8">
         {/* Header Section */}
         <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 mb-6">
@@ -360,82 +362,39 @@ const CustomerTab = () => {
                 <FaUser className="text-white text-lg" />
               </div>
               <h3 className="text-xl font-bold text-gray-900">
-                Customer Management
+                {t('customers.title')}
               </h3>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={() => setShowAddForm(!showAddForm)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-semibold transition-all duration-200 shadow-md hover:shadow-lg text-sm ${
-                  showAddForm 
-                    ? 'bg-gray-600 text-white hover:bg-gray-700' 
-                    : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800'
-                }`}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-semibold transition-all duration-200 shadow-md hover:shadow-lg text-sm ${showAddForm
+                  ? 'bg-gray-600 text-white hover:bg-gray-700'
+                  : 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800'
+                  }`}
               >
                 {showAddForm ? <FaMinus /> : <FaPlus />}
-                <span>{showAddForm ? 'Cancel' : 'New Customer'}</span>
+                <span>{showAddForm ? t('common.cancel') : t('customers.addCustomer')}</span>
               </button>
               <button
                 onClick={exportToCSV}
                 className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-2.5 rounded-lg font-semibold hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-md hover:shadow-lg text-sm"
               >
                 <FaFileExport />
-                <span>Export Data</span>
+                <span>{t('common.export')}</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="group bg-white rounded-xl shadow-lg border border-gray-100 p-4 hover:shadow-xl transition-all duration-300 hover:border-blue-300 overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-50 to-transparent rounded-bl-full opacity-50"></div>
-            <div className="flex items-center justify-between relative z-10">
-              <div>
-                <p className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-1">Total Customers</p>
-                <p className="text-2xl font-bold text-gray-900">{totalCustomers}</p>
-              </div>
-              <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-3 rounded-lg shadow-md group-hover:scale-110 transition-transform duration-300">
-                <FaUser className="text-white text-xl" />
-              </div>
-            </div>
-          </div>
 
-          <div className="group bg-white rounded-xl shadow-lg border border-gray-100 p-4 hover:shadow-xl transition-all duration-300 hover:border-green-300 overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-green-50 to-transparent rounded-bl-full opacity-50"></div>
-            <div className="flex items-center justify-between relative z-10">
-              <div>
-                <p className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-1">Active Customers</p>
-                <p className="text-2xl font-bold text-gray-900">{activeCustomers}</p>
-              </div>
-              <div className="bg-gradient-to-br from-green-500 to-green-600 p-3 rounded-lg shadow-md group-hover:scale-110 transition-transform duration-300">
-                <FaChartLine className="text-white text-xl" />
-              </div>
-            </div>
-          </div>
-
-          <div className="group bg-white rounded-xl shadow-lg border border-gray-100 p-4 hover:shadow-xl transition-all duration-300 hover:border-purple-300 overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-purple-50 to-transparent rounded-bl-full opacity-50"></div>
-            <div className="flex items-center justify-between relative z-10">
-              <div>
-                <p className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-1">Total Outstanding</p>
-                <p className="text-xl font-bold text-gray-900">
-                  {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(totalBalance)}
-                </p>
-              </div>
-              <div className="bg-gradient-to-br from-purple-500 to-purple-600 p-3 rounded-lg shadow-md group-hover:scale-110 transition-transform duration-300">
-                <FaDollarSign className="text-white text-xl" />
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* CUSTOMER LIST */}
         <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
             <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
               <FaList className="text-blue-600" />
-              Customers
+              {t('customers.title')}
               <span className="bg-blue-100 text-blue-700 px-2.5 py-0.5 rounded-full text-xs font-semibold">
                 {sortedCustomers.length}
               </span>
@@ -445,7 +404,7 @@ const CustomerTab = () => {
                 <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
                 <input
                   type="text"
-                  placeholder="Search customers by name, address, or ID..."
+                  placeholder={t('customers.searchPlaceholder')}
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="border-2 border-gray-200 rounded-xl pl-12 pr-4 py-3.5 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 placeholder:text-gray-400 text-sm"
@@ -454,23 +413,21 @@ const CustomerTab = () => {
               <div className="flex items-center gap-2 bg-gray-100 rounded-xl p-1.5 border-2 border-gray-200">
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-semibold transition-all duration-200 text-sm ${
-                    viewMode === 'list' 
-                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md' 
-                      : 'text-gray-600 hover:bg-gray-200'
-                  }`}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-semibold transition-all duration-200 text-sm ${viewMode === 'list'
+                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
+                    : 'text-gray-600 hover:bg-gray-200'
+                    }`}
                 >
-                  <FaList className="text-base" /> List
+                  <FaList className="text-base" /> {t('receipts.viewMode.list')}
                 </button>
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-semibold transition-all duration-200 text-sm ${
-                    viewMode === 'grid' 
-                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md' 
-                      : 'text-gray-600 hover:bg-gray-200'
-                  }`}
+                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-semibold transition-all duration-200 text-sm ${viewMode === 'grid'
+                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-md'
+                    : 'text-gray-600 hover:bg-gray-200'
+                    }`}
                 >
-                  <FaTh className="text-base" /> Grid
+                  <FaTh className="text-base" /> {t('receipts.viewMode.grid')}
                 </button>
               </div>
             </div>
@@ -482,42 +439,42 @@ const CustomerTab = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 text-white">
                   <tr>
-                    <th 
+                    <th
                       onClick={() => handleSort('displaySrNo')}
                       className="py-5 px-6 text-left text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-slate-700 transition-colors duration-200"
                     >
                       <div className="flex items-center gap-2">
-                        <span>Sr.No</span>
+                        <span>{t('customers.table.srNo')}</span>
                         {sortBy === 'displaySrNo' && (
                           <span className="text-blue-400 font-bold text-sm">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                         )}
                       </div>
                     </th>
-                    <th 
+                    <th
                       onClick={() => handleSort('name')}
                       className="py-5 px-6 text-left text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-slate-700 transition-colors duration-200"
                     >
                       <div className="flex items-center gap-2">
                         <FaUser className="text-xs" />
-                        <span>Customer Name</span>
+                        <span>{t('customers.table.name')}</span>
                         {sortBy === 'name' && (
                           <span className="text-blue-400 font-bold text-sm">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                         )}
                       </div>
                     </th>
-                    <th 
+                    <th
                       onClick={() => handleSort('address')}
                       className="py-5 px-6 text-left text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-slate-700 transition-colors duration-200"
                     >
                       <div className="flex items-center gap-2">
                         <FaMapMarkerAlt className="text-xs" />
-                        <span>Address</span>
+                        <span>{t('customers.table.address')}</span>
                         {sortBy === 'address' && (
                           <span className="text-blue-400 font-bold text-sm">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                         )}
                       </div>
                     </th>
-                    <th 
+                    <th
                       onClick={() => handleSort('latestBalance')}
                       className="py-5 px-6 text-left text-xs font-bold uppercase tracking-wider cursor-pointer hover:bg-slate-700 transition-colors duration-200"
                     >
@@ -530,7 +487,7 @@ const CustomerTab = () => {
                       </div>
                     </th>
                     <th className="py-5 px-6 text-center text-xs font-bold uppercase tracking-wider">
-                      Actions
+                      {t('customers.table.actions')}
                     </th>
                   </tr>
                 </thead>
@@ -539,9 +496,8 @@ const CustomerTab = () => {
                     sortedCustomers.map((customer, index) => (
                       <tr
                         key={customer._id}
-                        className={`${
-                          index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
-                        } hover:bg-blue-50 transition-colors duration-200 border-b border-gray-100`}
+                        className={`${index % 2 === 0 ? 'bg-white' : 'bg-gray-50'
+                          } hover:bg-blue-50 transition-colors duration-200 border-b border-gray-100`}
                       >
                         <td className="py-5 px-6">
                           <div className="flex items-center gap-2">
@@ -603,13 +559,13 @@ const CustomerTab = () => {
                                 onClick={() => saveEdit(customer._id)}
                                 className="bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 hover:from-green-700 hover:to-green-800 transition-all duration-200 shadow-md hover:shadow-lg font-semibold text-sm"
                               >
-                                <FaSave /> Save
+                                <FaSave /> {t('common.save')}
                               </button>
                               <button
                                 onClick={() => setEditingCustomerId(null)}
                                 className="bg-gradient-to-r from-gray-600 to-gray-700 text-white px-4 py-2.5 rounded-xl flex items-center gap-2 hover:from-gray-700 hover:to-gray-800 transition-all duration-200 shadow-md hover:shadow-lg font-semibold text-sm"
                               >
-                                <FaTimes /> Cancel
+                                <FaTimes /> {t('common.cancel')}
                               </button>
                             </div>
                           ) : (
@@ -651,14 +607,14 @@ const CustomerTab = () => {
                             <FaUser className="text-gray-400 text-5xl" />
                           </div>
                           <div>
-                            <p className="font-bold text-gray-800 text-xl">No customers found</p>
-                            <p className="text-sm text-gray-600 mt-2">Start by adding your first customer to the database</p>
+                            <p className="font-bold text-gray-800 text-xl">{t('customers.messages.noCustomers')}</p>
+                            <p className="text-sm text-gray-600 mt-2">{t('customers.description')}</p>
                           </div>
                           <button
                             onClick={() => setShowAddForm(true)}
                             className="mt-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-8 py-3.5 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg hover:shadow-xl flex items-center gap-2"
                           >
-                            <FaUserPlus className="text-lg" /> Add First Customer
+                            <FaUserPlus className="text-lg" /> {t('customers.addCustomer')}
                           </button>
                         </div>
                       </td>
@@ -702,13 +658,13 @@ const CustomerTab = () => {
                             onClick={() => saveEdit(customer._id)}
                             className="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white px-4 py-3 rounded-xl flex items-center justify-center gap-2 hover:from-green-700 hover:to-green-800 transition-all duration-200 font-semibold shadow-md"
                           >
-                            <FaSave /> Save
+                            <FaSave /> {t('common.save')}
                           </button>
                           <button
                             onClick={() => setEditingCustomerId(null)}
                             className="flex-1 bg-gradient-to-r from-gray-600 to-gray-700 text-white px-4 py-3 rounded-xl flex items-center justify-center gap-2 hover:from-gray-700 hover:to-gray-800 transition-all duration-200 font-semibold shadow-md"
                           >
-                            <FaTimes /> Cancel
+                            <FaTimes /> {t('common.cancel')}
                           </button>
                         </div>
                       </div>
@@ -737,7 +693,7 @@ const CustomerTab = () => {
                             </div>
                             {customer.name}
                           </h3>
-                          
+
                           <div className="space-y-2">
                             <div className="flex items-start gap-2 text-gray-600 text-sm bg-gray-50 p-3 rounded-lg">
                               <FaMapMarkerAlt className="text-gray-400 mt-0.5 flex-shrink-0" />
@@ -751,19 +707,19 @@ const CustomerTab = () => {
                             onClick={() => viewCustomerDetails(customer)}
                             className="flex-1 text-purple-600 hover:bg-purple-50 py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 font-semibold border-2 border-purple-200 hover:border-purple-300 hover:shadow-md"
                           >
-                            <FaEye /> View
+                            <FaEye /> {t('common.view')}
                           </button>
                           <button
                             onClick={() => startEdit(customer)}
                             className="flex-1 text-blue-600 hover:bg-blue-50 py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 font-semibold border-2 border-blue-200 hover:border-blue-300 hover:shadow-md"
                           >
-                            <FaEdit /> Edit
+                            <FaEdit /> {t('common.edit')}
                           </button>
                           <button
                             onClick={() => handleDeleteCustomer(customer)}
                             className="flex-1 text-red-600 hover:bg-red-50 py-3 rounded-xl transition-all duration-200 flex items-center justify-center gap-2 font-semibold border-2 border-red-200 hover:border-red-300 hover:shadow-md"
                           >
-                            <FaTrashAlt /> Delete
+                            <FaTrashAlt /> {t('common.delete')}
                           </button>
                         </div>
                       </>
@@ -777,14 +733,14 @@ const CustomerTab = () => {
                       <FaUser className="text-gray-400 text-5xl" />
                     </div>
                     <div>
-                      <p className="font-bold text-gray-700 text-lg">No customers found</p>
-                      <p className="text-sm text-gray-500 mt-2">Start by adding your first customer to the database</p>
+                      <p className="font-bold text-gray-700 text-lg">{t('customers.messages.noCustomers')}</p>
+                      <p className="text-sm text-gray-500 mt-2">{t('customers.description')}</p>
                     </div>
                     <button
                       onClick={() => setShowAddForm(true)}
                       className="mt-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-3 rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-md hover:shadow-lg flex items-center gap-2"
                     >
-                      <FaUserPlus /> Add First Customer
+                      <FaUserPlus /> {t('customers.addCustomer')}
                     </button>
                   </div>
                 </div>
@@ -940,12 +896,11 @@ const CustomerTab = () => {
                       </div>
                       <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100 hover:scrollbar-thumb-gray-400">
                         {customerStats.recentReceipts.map((receipt, index) => (
-                          <div 
-                            key={receipt._id} 
+                          <div
+                            key={receipt._id}
                             onClick={() => viewReceiptDetails(receipt._id)}
-                            className={`group flex items-center justify-between p-4 rounded-xl hover:shadow-xl transition-all duration-200 cursor-pointer border-2 hover:border-blue-400 hover:-translate-y-0.5 ${
-                              index % 2 === 0 ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-200'
-                            } hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50`}
+                            className={`group flex items-center justify-between p-4 rounded-xl hover:shadow-xl transition-all duration-200 cursor-pointer border-2 hover:border-blue-400 hover:-translate-y-0.5 ${index % 2 === 0 ? 'bg-gray-50 border-gray-200' : 'bg-white border-gray-200'
+                              } hover:bg-gradient-to-r hover:from-blue-50 hover:to-indigo-50`}
                           >
                             <div className="flex items-center gap-5 flex-1">
                               <div className="bg-gradient-to-br from-blue-100 to-blue-200 p-4 rounded-xl group-hover:from-blue-500 group-hover:to-blue-600 transition-all duration-200 shadow-md">
@@ -1015,14 +970,14 @@ const CustomerTab = () => {
       {showAddForm && (
         <>
           {/* Backdrop */}
-          <div 
+          <div
             className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm z-40 transition-opacity duration-300"
             onClick={() => {
               setShowAddForm(false);
               setNewCustomer({ name: "", address: "" });
             }}
           />
-          
+
           {/* Bottom Sheet */}
           <div className="fixed inset-x-0 bottom-0 z-50 flex justify-center animate-slide-up">
             <div className="bg-white rounded-t-3xl shadow-2xl border-t-2 border-gray-200 max-h-[85vh] overflow-y-auto w-full max-w-2xl mx-auto">
@@ -1030,7 +985,7 @@ const CustomerTab = () => {
               <div className="flex justify-center pt-4 pb-2">
                 <div className="w-14 h-1.5 bg-gray-300 rounded-full hover:bg-gray-400 transition-colors cursor-grab active:cursor-grabbing"></div>
               </div>
-              
+
               {/* Content */}
               <div className="px-6 sm:px-8 pb-8">
                 <form onSubmit={handleAddCustomer}>
@@ -1056,7 +1011,7 @@ const CustomerTab = () => {
                       <FaTimes className="text-xl" />
                     </button>
                   </div>
-                  
+
                   {/* Form Fields */}
                   <div className="space-y-5 mb-6">
                     {/* Sr.No */}
@@ -1077,7 +1032,7 @@ const CustomerTab = () => {
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* Name */}
                     <div className="space-y-2">
                       <label className="font-semibold text-gray-700 text-sm flex items-center gap-2">
@@ -1096,7 +1051,7 @@ const CustomerTab = () => {
                         autoFocus
                       />
                     </div>
-                    
+
                     {/* Address */}
                     <div className="space-y-2">
                       <label className="font-semibold text-gray-700 text-sm flex items-center gap-2">
@@ -1113,7 +1068,7 @@ const CustomerTab = () => {
                       />
                     </div>
                   </div>
-                  
+
                   {/* Action Buttons */}
                   <div className="flex gap-3 pt-5 border-t-2 border-gray-100">
                     <button

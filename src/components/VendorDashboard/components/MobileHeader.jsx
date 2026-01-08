@@ -1,5 +1,6 @@
 import React from "react";
 import { FaBars, FaBuilding } from "react-icons/fa";
+import LanguageToggle from "../../LanguageToggle";
 
 const MobileHeader = ({ vendor, onToggleMobileMenu }) => {
   return (
@@ -18,7 +19,9 @@ const MobileHeader = ({ vendor, onToggleMobileMenu }) => {
           {vendor?.businessName || "Vendor Dashboard"}
         </h2>
       </div>
-      <div className="w-10"></div> {/* Spacer for centering */}
+      <div className="flex items-center">
+        <LanguageToggle variant="compact" />
+      </div>
     </header>
   );
 };

@@ -44,7 +44,7 @@ const VendorDashboard = () => {
   // Detect current section from URL
   useEffect(() => {
     const path = location.pathname;
-    if (path.includes('/createReceipt')) {
+    if (path.includes('/createReceipt') || path.includes('/editReceipt')) {
       setCurrentSection('createReceipt');
     } else if (path.includes('/viewReceipts')) {
       setCurrentSection('viewReceipts');
