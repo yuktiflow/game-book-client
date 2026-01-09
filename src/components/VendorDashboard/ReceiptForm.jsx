@@ -906,11 +906,11 @@ const ReceiptForm = ({ businessName = "Bappa Gaming" }) => {
 
       toast.success("Image downloaded! Opening WhatsApp...");
 
-      // Open WhatsApp Web
+      // Open WhatsApp (app or web based on device)
       const text = encodeURIComponent(
         `Receipt for ${formData.customerName}\nDate: ${formData.date}\n\nPlease attach the downloaded receipt image.`
       );
-      window.open(`https://web.whatsapp.com/send?text=${text}`, "_blank");
+      window.open(`https://api.whatsapp.com/send?text=${text}`, "_blank");
 
       // Close modal and save receipt
       setShowShareModal(false);
@@ -2204,7 +2204,7 @@ const ReceiptForm = ({ businessName = "Bappa Gaming" }) => {
                     Share via WhatsApp
                   </div>
                   <div className="text-xs text-gray-600">
-                    Downloads image & opens WhatsApp Web
+                    Downloads image & opens WhatsApp
                   </div>
                 </div>
               </button>
